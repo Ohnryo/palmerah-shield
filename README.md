@@ -42,7 +42,11 @@ cd web && npm ci && npm run build && cd ..
 .venv/Scripts/python -m palmerah_shield console     # cetak URL + token login sekali pakai
 ```
 
-Buka `https://localhost:8700` (browser perlu mempercayai `.local/certs/ca.crt`). Konsol memanggil inti yang sama dan
+Windows PowerShell 5.1 tidak mengenal `&&`: jalankan `cd web`, `npm ci`, `npm run build`, `cd ..` satu per satu, dan pakai
+`.venv\Scripts\python -m palmerah_shield console`.
+
+Buka `https://localhost:8700` (browser perlu mempercayai `.local/certs/ca.crt`; sampai itu, peringatan sertifikat
+memutus koneksi, dan di Windows konsol tidak lagi mencetak traceback `ConnectionResetError` untuknya). Konsol memanggil inti yang sama dan
 menulis `out/` yang sama dengan CLI; selama satu operasi berjalan (dari CLI atau konsol), operasi lain ditolak.
 
 `make` tidak tersedia di Windows tanpa instalasi tambahan; `Makefile` berisi perintah yang sama untuk Linux/Docker.

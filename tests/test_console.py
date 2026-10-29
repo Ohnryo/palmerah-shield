@@ -215,3 +215,16 @@ def test_patches_listed_as_text(env):
     r = c.get("/api/patches/a").json()
     assert [f["name"] for f in r["files"]] == ["01-guide.md", "02-x.diff"]
     assert c.get("/api/patches/b").json()["files"] == []
+
+
+def test_connection_resets_are_quiet_other_errors_are_not():
+    import asyncio
+    seen = []
+
+    class Loop:
+        def default_exception_handler(self, ctx):
+            seen.append(ctx["message"])
+    server._quiet_resets(Loop(), {"message": "reset", "exception": ConnectionResetError(10054, "forcibly closed")})
+    server._quiet_resets(Loop(), {"message": "real", "exception": ValueError("x")})
+    assert seen == ["real"]
+    assert asyncio  # module used by serve()

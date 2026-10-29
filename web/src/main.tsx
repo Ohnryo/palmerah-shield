@@ -7,7 +7,10 @@ import { ApiError, logout, resume } from "./lib/api";
 import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
+import { Apply } from "./pages/Apply";
+import { Plan } from "./pages/Plan";
 import { Planned } from "./pages/Planned";
+import { Scan } from "./pages/Scan";
 
 function App() {
   const [auth, setAuth] = useState<"checking" | "in" | "out">("checking");
@@ -41,37 +44,9 @@ function App() {
         ),
         children: [
           { index: true, element: <Home /> },
-          {
-            path: "scan",
-            element: (
-              <Planned title="Scan" phase="U1" cli="shield scan -t a|b" items={[
-                "Pilih target A, B, atau unggah dump .sql",
-                "Tabel temuan PII: kelas, confidence, alasan, sampel tersamar",
-                "Presisi/recall dan confusion matrix terhadap acuan kontrak",
-                "Sorotan jebakan: ref_code berisi NIK, notes berisi HP/alamat",
-              ]} />
-            ),
-          },
-          {
-            path: "rencana",
-            element: (
-              <Planned title="Rencana" phase="U1" cli="shield plan -t a|b" items={[
-                "Kontrol per kolom (encrypt-AEAD, tokenize, blind-index, mask, view-only, drop) dengan alasan dan batas",
-                "Editor access_matrix.json: grid 7 peran × field",
-              ]} />
-            ),
-          },
-          {
-            path: "terapkan",
-            element: (
-              <Planned title="Terapkan" phase="U2" cli="shield apply -t a|b / shield rollback -t a|b" items={[
-                "Pratinjau perubahan dari plan",
-                "Konfirmasi dengan mengetik nama target",
-                "Progres langkah live (SSE) dan laporan berlabel [IMPLEMENTED]/[TESTED]/[PLANNED]",
-                "Tombol Rollback",
-              ]} />
-            ),
-          },
+          { path: "scan", element: <Scan /> },
+          { path: "rencana", element: <Plan /> },
+          { path: "terapkan", element: <Apply /> },
           {
             path: "bukti",
             element: (

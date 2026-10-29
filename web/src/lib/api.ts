@@ -88,3 +88,138 @@ export interface Status {
 }
 
 export const getStatus = () => call<Status>("GET", "/api/status");
+
+// ---------- out/ files ----------
+export type Target = "a" | "b";
+
+export interface Finding {
+  table: string;
+  column: string;
+  detected_class: string;
+  pii_type: string;
+  confidence: number;
+  why: string[];
+  sample_masked: string;
+}
+
+export interface Protect {
+  tp: number;
+  fp: number;
+  fn: number;
+  precision: number;
+  recall: number;
+  f1: number;
+}
+
+export interface ModeMetrics {
+  columns_scored: number;
+  protect: Protect;
+  class_accuracy: number;
+  confusion: Record<string, Record<string, number>>;
+  mismatches: { table: string; column: string; reference: string; detected: string }[];
+  traps_caught: Record<string, boolean | null>;
+}
+
+export interface Inventory {
+  target: string;
+  source: string;
+  generated_at: string;
+  rows_sampled: Record<string, number>;
+  findings: Finding[];
+  metrics?: { reference: string; with_column_names: ModeMetrics; content_only: ModeMetrics };
+  notes?: string[];
+}
+
+export interface PlanColumn {
+  table: string;
+  column: string;
+  field: string;
+  detected_class: string;
+  pii_type: string;
+  controls: string[];
+  reason: string;
+  limitations: string[];
+  needs_human_review: boolean;
+  review_note: string | null;
+  visible_to: Record<string, string> | null;
+}
+
+export interface Plan {
+  target: string;
+  generated_at: string;
+  access_matrix: { problems: string[] };
+  controls_catalog: Record<string, { what: string; limits: string[] }>;
+  columns: PlanColumn[];
+  by_control: Record<string, string[]>;
+  needs_human_review: string[];
+}
+
+export interface ApplyReport {
+  target: string;
+  database: string;
+  applied_at: string;
+  mode: string;
+  controls: { control: string; status: string; evidence: string }[];
+  steps: { step: string; [k: string]: unknown }[];
+  verification: Record<string, unknown>;
+  needs_human_review: string[];
+  rerun?: { at: string; result: string };
+}
+
+export const getOut = <T,>(kind: "inventory" | "plan" | "apply_report" | "rollback", t: Target) =>
+  call<T>("GET", `/api/out/${kind}_${t}`);
+
+// ---------- access matrix ----------
+export interface Matrix {
+  roles: Record<string, string>;
+  levels: Record<string, string>;
+  fields: Record<string, Record<string, string>>;
+  problems: string[];
+}
+
+export const getMatrix = () => call<Matrix>("GET", "/api/matrix");
+export const putMatrix = (fields: Matrix["fields"]) =>
+  call<{ changed: string[]; needs: string }>("PUT", "/api/matrix", { fields });
+
+// ---------- jobs ----------
+export type Op = "scan" | "plan" | "apply" | "rollback" | "reset";
+
+export interface JobEvent {
+  t?: number;
+  step: string;
+  state?: string;
+  [k: string]: unknown;
+}
+
+export interface Job {
+  id: string;
+  op: Op;
+  target: Target | null;
+  state: "running" | "done" | "failed";
+  error: string | null;
+  result: Record<string, unknown> | null;
+  events: JobEvent[];
+}
+
+export const startJob = (op: Op, target: Target | null, confirm?: string) =>
+  call<Job>("POST", "/api/jobs", { op, target, confirm });
+export const getJob = (id: string) => call<Job>("GET", `/api/jobs/${id}`);
+
+/** Stream progress events (SSE) of a job; resolves when the job ends. EventSource sends the session cookie. */
+export function watchJob(id: string, onEvent: (e: JobEvent) => void): Promise<void> {
+  return new Promise((resolve) => {
+    const es = new EventSource(`/api/jobs/${id}/events`);
+    es.onmessage = (m) => {
+      const e = JSON.parse(m.data) as JobEvent;
+      onEvent(e);
+      if (e.step === "end") {
+        es.close();
+        resolve();
+      }
+    };
+    es.onerror = () => {
+      es.close();
+      resolve();
+    };
+  });
+}

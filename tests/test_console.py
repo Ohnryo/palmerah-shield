@@ -24,6 +24,8 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(ops, "INFO_FILE", tmp_path / "op.json")
     monkeypatch.setattr(server, "AUDIT_FILE", tmp_path / "audit.log")
     monkeypatch.setattr(server, "services", lambda: {"mysql": False})
+    from palmerah_shield import access
+    monkeypatch.setattr(access, "MATRIX_FILE", tmp_path / "access_matrix.json")
     gate = threading.Event()
     calls = []
 
@@ -159,3 +161,23 @@ def test_job_refused_while_cli_holds_the_lock(env):
 def test_ui_not_built_message(env):
     r = env["client"].get("/")
     assert r.status_code == 503
+
+
+def test_matrix_read_edit_validate_and_audit(env):
+    c = env["client"]
+    h = login(c)
+    m = c.get("/api/matrix").json()
+    assert set(m["roles"]) >= {"public", "sdm"} and m["problems"] == [] and m["fields"]["nik"]["public"] == "none"
+    row = {**m["fields"]["nik"], "humas": "masked"}
+    r = c.put("/api/matrix", json={"fields": {"nik": row}}, headers=h)
+    assert r.status_code == 200 and r.json()["changed"] == ["nik"]
+    assert c.get("/api/matrix").json()["fields"]["nik"]["humas"] == "masked"
+    assert json.loads((env["tmp"] / "access_matrix.json").read_text(encoding="utf-8"))["fields"]["nik"]["humas"] == "masked"
+    assert "matrix:update" in (env["tmp"] / "audit.log").read_text(encoding="utf-8")
+    # rejected: public may only be none/full, unknown field, unknown level, incomplete row, no CSRF
+    assert c.put("/api/matrix", json={"fields": {"nik": {**row, "public": "masked"}}}, headers=h).status_code == 422
+    assert c.put("/api/matrix", json={"fields": {"nope": row}}, headers=h).status_code == 422
+    assert c.put("/api/matrix", json={"fields": {"nik": {**row, "sdm": "all"}}}, headers=h).status_code == 422
+    assert c.put("/api/matrix", json={"fields": {"nik": {"sdm": "full"}}}, headers=h).status_code == 422
+    assert c.get("/api/matrix").json()["fields"]["nik"]["public"] == "none"
+    assert c.put("/api/matrix", json={"fields": {"nik": row}}).status_code == 403

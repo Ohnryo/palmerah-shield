@@ -30,7 +30,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
-from .. import ops
+from .. import access, ops
 from ..config import LOCAL, OUT, ROOT, settings
 
 SESSION_COOKIE = "palmerah_session"
@@ -131,6 +131,10 @@ class JobRequest(BaseModel):
 
 class Login(BaseModel):
     token: str
+
+
+class MatrixUpdate(BaseModel):
+    fields: dict[str, dict[str, Literal["full", "masked", "none", "self"]]]
 
 
 CONFIRM_NEEDED = {"apply", "rollback", "reset"}
@@ -293,6 +297,36 @@ def create_app(token: str, out_dir: Path = OUT, runner: Runner | None = None, di
         if r is None:
             raise HTTPException(404, "belum ada: jalankan langkahnya dulu")
         return r
+
+    @app.get("/api/matrix")
+    def get_matrix(s: dict = Depends(session)):
+        m, _ = access.ensure_matrix(access.MATRIX_FILE)
+        return {"roles": m["roles"], "levels": m["levels"], "fields": m["fields"], "problems": access.validate(m)}
+
+    @app.put("/api/matrix")
+    def put_matrix(body: MatrixUpdate, s: dict = Depends(session)):
+        """Change levels of existing fields only; a changed matrix takes effect after `plan` + `apply` again (VIEWs)."""
+        if runner.active() or ops.current():
+            raise HTTPException(409, "operasi sedang berjalan; tunggu selesai sebelum mengubah matriks")
+        m, _ = access.ensure_matrix(access.MATRIX_FILE)
+        unknown = sorted(set(body.fields) - set(m["fields"]))
+        if unknown:
+            raise HTTPException(422, f"field tidak dikenal: {unknown}")
+        changed = []
+        for f, row in body.fields.items():
+            if set(row) != set(access.ROLES):
+                raise HTTPException(422, f"{f}: semua peran harus diisi")
+            new = {**m["fields"][f], **row}
+            if new != m["fields"][f]:
+                changed.append(f)
+            m["fields"][f] = new
+        problems = access.validate(m)
+        if problems:
+            raise HTTPException(422, "; ".join(problems[:3]))
+        if changed:
+            access.MATRIX_FILE.write_text(json.dumps(m, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            audit(s["id"], "matrix:update", None, ",".join(changed)[:300])
+        return {"changed": changed, "needs": "jalankan plan + apply ulang agar VIEW per peran mengikuti matriks"}
 
     @app.post("/api/jobs", status_code=202)
     def start_job(req: JobRequest, s: dict = Depends(session)):

@@ -13,7 +13,8 @@ dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `roll
 | S0 | Kerangka CLI, fixture website A (MySQL :3306) dan B (PostgreSQL :5432) sesuai skema kontrak, `make reset` | [TESTED] 11 uji |
 | S1 | `shield scan` (dump `.sql` MySQL/PG atau `--dsn` live) + presisi/recall vs klasifikasi kontrak → `out/inventory.json` | [TESTED] 9 uji |
 | U0 | Konsol web `shield console` (https://localhost:8700): login token, CSRF, TLS 1.3, runner + SSE, kunci operasi bersama CLI, Beranda | [TESTED] 17 uji + uji browser |
-| U1–U5 | Halaman Scan, Rencana, Terapkan, Bukti, Kinerja, Kunci & Audit, Patch (lihat docs/PLAN.md) | [PLANNED] |
+| U1–U2 | Halaman Scan, Rencana (+ editor `access_matrix.json`), Terapkan (konfirmasi nama target, progres live, rollback) | [TESTED] 18 uji API + uji browser alur penuh dengan runner palsu; belum dengan database nyata |
+| U3–U5 | Halaman Bukti, Kinerja, Kunci & Audit, Patch; unggah dump `.sql` (lihat docs/PLAN.md) | [PLANNED] |
 | S2 | `shield plan` + `access_matrix.json` (7 peran × field) → `out/plan.json`: kontrol per kolom + alasan + batas + daftar *needs human review* | [TESTED] 9 uji |
 | S3 | KMS terpisah :8200, `shield apply` / `rollback` / `patch` → `out/apply_report.json`, `MODE=hardened` | [TESTED] 22 uji (A & B live) |
 | S4 | Reverse proxy TLS :8443/:8444, filter respons per peran, audit akses PII | [PLANNED] |

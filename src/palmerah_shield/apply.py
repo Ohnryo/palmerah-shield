@@ -134,7 +134,7 @@ class PG(Dialect):
         s = settings()
         env = {**os.environ, "PGPASSWORD": s.pg_super_password, "PGSSLMODE": "verify-full", "PGSSLROOTCERT": str(s.ca_cert)}
         return subprocess.run([str(s.pg_home / "bin" / f"pg_dump{EXE}"), "-h", "127.0.0.1", "-p", str(s.pg_port), "-U", "postgres",
-                               "--no-owner", "--no-privileges", "--inserts", self.db], env=env, capture_output=True, check=True).stdout
+                               "--no-owner", "--no-privileges", self.db], env=env, capture_output=True, check=True).stdout
 
     def restore(self, sql: bytes) -> None:
         from .db import pg_connect

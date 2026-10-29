@@ -89,7 +89,7 @@ menambah kerahasiaan, usulan drop).
 | Rollback dari backup terenkripsi | data identik dengan sebelum apply | data identik dengan sebelum apply |
 
 ### Skenario bocor (a): dump tanpa kunci
-Satu baris `member_finance` dari `pg_dump` sesudah apply:
+Satu baris `member_finance` dari `pg_dump --inserts` sesudah apply (backup Shield kini memakai format COPY bawaan `pg_dump` agar restore cepat; isi barisnya sama):
 
 ```
 INSERT INTO public.member_finance VALUES (702, '91175523842877', '1338218446986106', 'Bank BCA', '120', 'KPPN Yogyakarta',

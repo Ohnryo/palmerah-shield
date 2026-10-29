@@ -276,3 +276,17 @@ export interface Benchmark {
   sizes: { members: number; load_s: number; before: Phase; after: Phase; apply: { seconds: number; members_per_s: number; steps: Record<string, number> }; rollback_s: number }[];
   notes: string[];
 }
+
+// ---------- keys & audit, patches ----------
+export interface AuditLine { ts: string; [k: string]: unknown }
+export interface KeysOverview {
+  target: string;
+  kms: { reachable: boolean; error?: string; status?: { kek_id: string; tokens: Record<string, number>; audit_lines: number; alerts: number }; audit?: AuditLine[] };
+  shield_keys: { rows: { key_id: string; name: string; purpose: string; created_at: string }[]; note?: string };
+  proxy_audit: AuditLine[];
+  console_audit: AuditLine[];
+}
+export const getKeys = (t: Target) => call<KeysOverview>("GET", `/api/keys/${t}`);
+
+export interface Patches { target: string; dir: string; files: { name: string; kind: string; text: string }[] }
+export const getPatches = (t: Target) => call<Patches>("GET", `/api/patches/${t}`);

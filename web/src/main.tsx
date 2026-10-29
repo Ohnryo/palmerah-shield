@@ -9,6 +9,8 @@ import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Apply } from "./pages/Apply";
 import { Bukti } from "./pages/Evidence";
+import { KeysAudit } from "./pages/KeysAudit";
+import { Patch } from "./pages/Patch";
 import { Performance } from "./pages/Performance";
 import { Plan } from "./pages/Plan";
 import { Planned } from "./pages/Planned";
@@ -51,21 +53,8 @@ function App() {
           { path: "terapkan", element: <Apply /> },
           { path: "bukti", element: <Bukti /> },
           { path: "kinerja", element: <Performance /> },
-          {
-            path: "kunci-audit",
-            element: (
-              <Planned title="Kunci & Audit" phase="U5" items={[
-                "Status KMS tanpa materi kunci",
-                "Log akses dan dekripsi PII, alarm pembacaan massal",
-              ]} />
-            ),
-          },
-          {
-            path: "patch",
-            element: (
-              <Planned title="Patch" phase="U5" cli="shield patch -t a|b --app-src <dir>" items={["Diff perbaikan kode berlabel needs human review"]} />
-            ),
-          },
+          { path: "kunci-audit", element: <KeysAudit /> },
+          { path: "patch", element: <Patch /> },
           { path: "*", element: <Planned title="Tidak ditemukan" phase="–" items={["Halaman ini tidak ada."]} /> },
         ],
       },

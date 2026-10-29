@@ -190,3 +190,28 @@ def test_evidence_job_needs_no_confirmation(env):
     env["gate"].set()
     assert c.post("/api/jobs", json={"op": "evidence", "target": "b"}, headers=h).status_code == 202
     assert c.post("/api/jobs", json={"op": "evidence"}, headers=h).status_code in (409, 422)   # target required
+
+
+def test_keys_and_audit_never_carry_key_material(env, monkeypatch):
+    c = env["client"]
+    login(c)
+    monkeypatch.setattr(server, "kms_overview", lambda: {"reachable": True, "status": {"kek_id": "abc", "tokens": {"nik": 3}},
+                                                         "audit": [{"caller": "proxy-b", "op": "unwrap", "count": 1}]})
+    monkeypatch.setattr(server, "key_rows", lambda t: {"rows": [{"key_id": "k1", "name": "web_modern:x.y:aead", "purpose": "aead", "created_at": "t"}]})
+    r = c.get("/api/keys/b").json()
+    assert r["kms"]["status"]["tokens"] == {"nik": 3} and r["shield_keys"]["rows"][0]["key_id"] == "k1"
+    assert "wrapped" not in json.dumps(r) and r["console_audit"][0]["action"] == "login"
+    assert c.get("/api/keys/c").status_code == 422
+
+
+def test_patches_listed_as_text(env):
+    c = env["client"]
+    login(c)
+    d = env["out"] / "patches" / "a"
+    d.mkdir(parents=True)
+    (d / "01-guide.md").write_text("# panduan", encoding="utf-8")
+    (d / "02-x.diff").write_text("--- a\n+++ b\n", encoding="utf-8")
+    (d / "evil.sh").write_text("rm -rf /", encoding="utf-8")
+    r = c.get("/api/patches/a").json()
+    assert [f["name"] for f in r["files"]] == ["01-guide.md", "02-x.diff"]
+    assert c.get("/api/patches/b").json()["files"] == []

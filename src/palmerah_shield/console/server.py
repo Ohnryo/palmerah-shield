@@ -122,6 +122,59 @@ def services() -> dict:
             "web_a": port_open(8080), "web_b": port_open(3000), "proxy_a": port_open(8443), "proxy_b": port_open(8444)}
 
 
+# ---------- keys & audit (read-only; never key material, never values) ----------
+def _tail(path: Path, n: int) -> list[dict]:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()[-n:]
+    except OSError:
+        return []
+    out = []
+    for x in lines:
+        try:
+            out.append(json.loads(x))
+        except ValueError:
+            continue
+    return out
+
+
+def kms_overview() -> dict:
+    from ..kms import Client
+    try:
+        c = Client("console")
+        return {"reachable": True, "status": c.status(), "audit": c.audit(100)}
+    except Exception as e:
+        return {"reachable": False, "error": type(e).__name__}
+
+
+def key_rows(t: str) -> dict:
+    from ..apply import DIALECTS
+    try:
+        with DIALECTS[t]().connect() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT key_id, name, purpose, created_at FROM shield_keys ORDER BY name")
+            return {"rows": [{"key_id": r[0], "name": r[1], "purpose": r[2], "created_at": str(r[3])} for r in cur.fetchall()]}
+    except Exception as e:                      # no table before apply, or database down
+        return {"rows": [], "note": type(e).__name__}
+
+
+def keys_overview(t: str) -> dict:
+    return {"target": t, "kms": kms_overview(), "shield_keys": key_rows(t),
+            "proxy_audit": _tail(LOCAL / "proxy" / f"audit-{t}.log", 100), "console_audit": _tail(AUDIT_FILE, 50)}
+
+
+PATCH_EXT = {".md", ".diff", ".json"}
+
+
+def patches(t: str, out_dir: Path) -> dict:
+    d = out_dir / "patches" / t
+    files = []
+    if d.is_dir():
+        for f in sorted(d.iterdir()):
+            if f.is_file() and f.suffix in PATCH_EXT and f.stat().st_size <= 200_000:
+                files.append({"name": f.name, "kind": f.suffix[1:], "text": f.read_text(encoding="utf-8", errors="replace")})
+    return {"target": t, "dir": f"out/patches/{t}/", "files": files}
+
+
 # ---------- jobs (one at a time; same lock as the CLI) ----------
 class JobRequest(BaseModel):
     op: Literal["scan", "plan", "apply", "rollback", "reset", "evidence", "benchmark"]
@@ -305,6 +358,14 @@ def create_app(token: str, out_dir: Path = OUT, runner: Runner | None = None, di
         if r is None:
             raise HTTPException(404, "belum ada: jalankan langkahnya dulu")
         return r
+
+    @app.get("/api/keys/{t}")
+    def keys(t: Literal["a", "b"], s: dict = Depends(session)):
+        return keys_overview(t)
+
+    @app.get("/api/patches/{t}")
+    def get_patches(t: Literal["a", "b"], s: dict = Depends(session)):
+        return patches(t, out_dir)
 
     @app.get("/api/matrix")
     def get_matrix(s: dict = Depends(session)):

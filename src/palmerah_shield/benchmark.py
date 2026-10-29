@@ -224,7 +224,10 @@ def benchmark(target: str, sizes: list[int] | None = None, out_dir: Path = OUT) 
             "data sintetis hasil seed.scale_rows (identitas unik baru per baris); bukan data nyata",
             "before = aplikasi rentan sebagai root/postgres pada tabel dasar; after = login aplikasi + SET ROLE sdm + VIEW, "
             "lookup termasuk dekripsi oleh filter proxy, search memakai blind index (berindeks)",
-            "CPU/RAM = proses benchmark (klien + kripto proxy); CPU server database tidak diukur",
+            "search: kolom nik pada skema rentan tidak berindeks, nik_bidx sesudah apply berindeks; selisih search karena indeks, "
+            "bukan karena enkripsi",
+            "CPU/RAM = proses benchmark (klien + kripto proxy); RSS puncak didominasi apply yang memuat seluruh tabel ke memori; "
+            "CPU server database tidak diukur",
             "dump after lebih besar karena ciphertext + kolom bidx/mask; restore after tidak diukur (rollback memulihkan backup)",
         ],
     }

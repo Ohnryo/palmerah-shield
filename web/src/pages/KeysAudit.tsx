@@ -88,7 +88,7 @@ function AuditCard({ title, lines, cols, empty }: { title: string; lines: AuditL
               {rows.map((r, i) => (
                 <tr key={i} className={`border-b border-border/60 align-top ${r.alert ? "bg-leak-bg" : ""}`}>
                   <td className="whitespace-nowrap px-2 py-1 font-mono text-muted">{new Date(r.ts).toLocaleTimeString("id-ID")}</td>
-                  {cols.map((c) => <td key={c} className="px-2 py-1 font-mono">{r[c] === undefined || r[c] === null ? "" : String(r[c])}</td>)}
+                  {cols.map((c) => <td key={c} className="break-all px-2 py-1 font-mono">{r[c] === undefined || r[c] === null ? "" : String(r[c])}</td>)}
                 </tr>
               ))}
             </tbody>

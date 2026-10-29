@@ -78,7 +78,7 @@ function Result({ b }: { b: Benchmark }) {
   const metrics: Metric[] = [
     { title: "Lookup satu anggota, p95", unit: "ms", digits: 2, note: "sesudah = VIEW peran sdm + dekripsi oleh filter proxy",
       rows: b.sizes.map((s) => ({ members: s.members, before: s.before.lookup.p95_ms ?? 0, after: s.after.lookup.p95_ms ?? 0 })) },
-    { title: "Cari berdasarkan NIK, p95", unit: "ms", digits: 2, note: "sesudah = blind index HMAC (berindeks), NIK tidak pernah didekripsi",
+    { title: "Cari berdasarkan NIK, p95", unit: "ms", digits: 2, note: "sebelum: kolom nik tanpa indeks (skema web rentan); sesudah: indeks pada nik_bidx. Selisihnya karena indeks, bukan karena enkripsi",
       rows: b.sizes.map((s) => ({ members: s.members, before: s.before.search.p95_ms ?? 0, after: s.after.search.p95_ms ?? 0 })) },
     { title: "Ukuran database", unit: "MB", digits: 1, note: "ciphertext + kolom blind index/mask",
       rows: b.sizes.map((s) => ({ members: s.members, before: mb(s.before.db_bytes), after: mb(s.after.db_bytes) })) },
@@ -136,14 +136,14 @@ function Result({ b }: { b: Benchmark }) {
                   <tr key={`${s.members}${ph}`} className="border-b border-border/60">
                     <td className="px-2 py-1.5">{nf(s.members, 0)}</td>
                     <td className="px-2 py-1.5">{ph === "before" ? "sebelum" : "sesudah"}</td>
-                    <td className="px-2 py-1.5">{x.lookup.p50_ms} / {x.lookup.p95_ms}</td>
-                    <td className="px-2 py-1.5">{x.search.p50_ms} / {x.search.p95_ms}</td>
+                    <td className="px-2 py-1.5">{nf(x.lookup.p50_ms ?? 0, 3)} / {nf(x.lookup.p95_ms ?? 0, 3)}</td>
+                    <td className="px-2 py-1.5">{nf(x.search.p50_ms ?? 0, 3)} / {nf(x.search.p95_ms ?? 0, 3)}</td>
                     <td className="px-2 py-1.5">{x.lookup.qps !== undefined ? nf(x.lookup.qps, 0) : "–"}</td>
                     <td className="px-2 py-1.5">{nf(mb(x.db_bytes))}</td>
-                    <td className="px-2 py-1.5">{nf(mb(x.dump_bytes))} / {x.dump_s}</td>
-                    <td className="px-2 py-1.5">{x.restore_s ?? "–"}</td>
-                    <td className="px-2 py-1.5">{x.client_cpu_s ?? "–"}</td>
-                    <td className="px-2 py-1.5">{x.peak_rss_mb ?? "–"}</td>
+                    <td className="px-2 py-1.5">{nf(mb(x.dump_bytes))} / {nf(x.dump_s, 2)}</td>
+                    <td className="px-2 py-1.5">{x.restore_s !== undefined ? nf(x.restore_s) : "–"}</td>
+                    <td className="px-2 py-1.5">{x.client_cpu_s !== null ? nf(x.client_cpu_s, 3) : "–"}</td>
+                    <td className="px-2 py-1.5">{x.peak_rss_mb !== null ? nf(x.peak_rss_mb, 0) : "–"}</td>
                   </tr>
                 );
               }))}

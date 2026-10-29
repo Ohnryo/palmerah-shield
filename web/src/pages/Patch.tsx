@@ -23,7 +23,7 @@ export function Patch() {
       )}
       {q.data?.files.filter((f) => f.kind !== "json").map((f) => (
         <Card key={f.name} title={<span className="font-mono">{f.name}</span>} icon={<FileDiff className="size-5 text-accent" aria-hidden />} actions={<Badge tone="warn">needs human review</Badge>}>
-          <pre className="max-h-[32rem] overflow-auto rounded-lg bg-surface-2 p-3 font-mono text-xs leading-relaxed">
+          <pre className={`max-h-[32rem] overflow-auto rounded-lg bg-surface-2 p-3 font-mono text-xs leading-relaxed ${f.kind === "md" ? "whitespace-pre-wrap break-words" : ""}`}>
             {f.kind === "diff"
               ? f.text.split("\n").map((l, i) => (
                   <span key={i} className={`block ${l.startsWith("+") && !l.startsWith("+++") ? "text-safe" : l.startsWith("-") && !l.startsWith("---") ? "text-leak" : l.startsWith("@@") ? "text-accent" : ""}`}>{l || " "}</span>

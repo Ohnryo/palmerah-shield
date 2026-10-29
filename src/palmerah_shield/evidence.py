@@ -196,7 +196,7 @@ def evidence(target: str, out_dir: Path = OUT) -> dict:
                                                       .get("verification", {}).get("dump_without_keys", {})).items()
                                     if k in ("sample_values", "found_in_dump")}},
         "b_dump_with_keys": {"label": "[TESTED]", **with_key},
-        "c_legitimate_users": {"label": "[TESTED] level database; lewat web/proxy [PLANNED] (S4)",
+        "c_legitimate_users": {"label": "[TESTED] level database; lewat proxy: lihat `shield proxy` (butuh web yang mengirim X-Palmerah-Role)",
                                "via": f"login {d.app_user} + SET ROLE (tanpa akses tabel dasar)",
                                "roles": roles, "member_id_for_self_role": first_member},
         "plaintext_cells_total": leaks,

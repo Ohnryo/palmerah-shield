@@ -538,8 +538,9 @@ def _report(target: str, d: Dialect, plan: dict, steps: list, b: dict, allow_dro
          "evidence": ("dihapus: " if allow_drop else "menunggu persetujuan manusia: ") + ", ".join(dropped)},
         {"control": "Patch kode aplikasi (login least-privilege, prepared statement, hash sandi)", "status": "[IMPLEMENTED]",
          "evidence": f"out/patches/{target}/ (needs human review; diff prepared statement dibuat bila --app-src diberikan ke `shield patch`)"},
-        {"control": "Reverse proxy TLS + header + filter respons per peran + dekripsi terkendali", "status": "[PLANNED]", "evidence": "tahap S4"},
-        {"control": "Audit akses/dekripsi PII + alarm baca massal", "status": "[IMPLEMENTED]", "evidence": "audit KMS (unwrap, detokenize, alarm >5000 nilai/menit); audit proxy di S4"},
+        {"control": "Reverse proxy TLS + header + filter respons per peran + dekripsi terkendali", "status": "[IMPLEMENTED]",
+         "evidence": f"jalankan `shield proxy -t {target}` (:{8443 if target == 'a' else 8444}); diuji di tests/test_proxy.py; website perlu mengirim header X-Palmerah-Role (ASUMSI A5)"},
+        {"control": "Audit akses/dekripsi PII + alarm baca massal", "status": "[IMPLEMENTED]", "evidence": "audit KMS (unwrap, detokenize, alarm >5000 nilai/menit) + audit proxy per respons (.local/proxy/audit-<t>.log, alarm >2000 nilai/menit per peran)"},
     ]
     return {
         "target": target, "database": d.db, "applied_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),

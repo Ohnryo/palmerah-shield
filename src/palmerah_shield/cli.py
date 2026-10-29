@@ -120,6 +120,14 @@ def rollback(target: str = typer.Option(..., "--target", "-t")) -> None:
 
 
 @app.command()
+def proxy(target: str = typer.Option(..., "--target", "-t"),
+          upstream: str = typer.Option(None, "--upstream", help="website URL (default: contract port 8080 / 3000)")) -> None:
+    """TLS reverse proxy (:8443 for A, :8444 for B): per-role field filter, controlled decryption via KMS, audit."""
+    from .proxy import serve
+    serve(target, upstream)
+
+
+@app.command()
 def console(port: int = typer.Option(8700, "--port", help="HTTPS port on 127.0.0.1")) -> None:
     """Web console (https://localhost:8700): same core and out/ files as this CLI. Prints a one-time login token."""
     from .console.server import serve

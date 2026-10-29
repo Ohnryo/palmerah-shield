@@ -3,7 +3,7 @@
 Komponen **Shield** dari proyek Palmerah (Final Hackathon DPR RI 2026, "Database Bocor"): CLI yang mengubah website
 dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `rollback`, `benchmark`).
 
-* Sumber kebenaran: [docs/KONTRAK.md](docs/KONTRAK.md). Asumsi dan hal yang perlu disepakati tim: [docs/ASUMSI.md](docs/ASUMSI.md).
+* Sumber kebenaran: [docs/KONTRAK.md](docs/KONTRAK.md). Integrasi website A/B dengan proxy: [docs/INTEGRASI_WEB.md](docs/INTEGRASI_WEB.md). Asumsi dan hal yang perlu disepakati tim: [docs/ASUMSI.md](docs/ASUMSI.md).
 * Semua data **sintetis**; semua layanan hanya di `127.0.0.1` (atau jaringan Docker terisolasi). Tidak ada rahasia di repo.
 
 ## Status
@@ -18,7 +18,7 @@ dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `roll
 | U4–U5 | Halaman Kinerja, Kunci & Audit, Patch; unggah dump `.sql` (lihat docs/PLAN.md) | [PLANNED] |
 | S2 | `shield plan` + `access_matrix.json` (7 peran × field) → `out/plan.json`: kontrol per kolom + alasan + batas + daftar *needs human review* | [TESTED] 9 uji |
 | S3 | KMS terpisah :8200, `shield apply` / `rollback` / `patch` → `out/apply_report.json`, `MODE=hardened` | [TESTED] 22 uji (A & B live) |
-| S4 | Reverse proxy TLS :8443/:8444, filter respons per peran, audit akses PII | [PLANNED] |
+| S4 | `shield proxy -t a|b`: TLS 1.3 :8443/:8444, peran dari header respons web `X-Palmerah-Role` (header klien dibuang), filter JSON per field sesuai `access_matrix.json`, dekripsi/detokenisasi lewat KMS, audit + alarm baca massal | [TESTED] 9 uji + live pada website B (PostgreSQL) dengan web B tiruan; menunggu web A/B asli |
 | S5 | `shield benchmark`, Dockerfile/compose (patch kode sudah ada di S3) | [PLANNED] |
 
 ## Mulai (mesin dev Windows, tanpa Docker)

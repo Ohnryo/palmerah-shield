@@ -26,7 +26,7 @@ Operator ──────► │ React UI  ──►  API FastAPI  ──►  
 | API | FastAPI + uvicorn (HTTPS TLS 1.3 dengan CA uji), Server-Sent Events untuk progres | Bahasa yang sama dengan inti |
 | UI | React 19 + Vite + TypeScript, Tailwind CSS v4, Recharts, React Router, TanStack Query, lucide | Build lokal tanpa CDN; disajikan oleh API dari origin yang sama, jadi CSP `'self'` dan cookie `SameSite=Strict` berlaku |
 | Pekerjaan panjang | Runner di proses API + kunci OS di inti + SSE | Satu operator, sederhana |
-| Proxy | Caddy (TLS, header) + filter respons per peran (Python) | Sesuai spesifikasi |
+| Proxy | Python (`shield proxy`): TLS 1.3, header keamanan, filter respons per peran | Semula Caddy + filter Python; satu proses Python lebih sedikit bagian bergerak dan dapat diuji otomatis. Caddy tetap dapat dipasang di depannya bila diinginkan |
 
 ## 3. Halaman UI (urut alur demo)
 | # | Halaman | Isi | Momen demo |
@@ -65,11 +65,11 @@ Presentasi 31 Oktober. Urutan: inti dulu, lalu UI, dengan garis potong yang jela
 | U1 | Halaman Scan dan Rencana (+ editor matriks; unggah dump `.sql` belum) | — | WAJIB | selesai [TESTED] (kecuali unggah dump: [PLANNED]) |
 | U2 | Halaman Terapkan (pratinjau, konfirmasi nama target, progres SSE, laporan berlabel, rollback) | — | WAJIB | selesai [TESTED] |
 | U3 | `shield evidence` + halaman Bukti (a)(b)(c) level DB; scoreboard sebelum/sesudah dari RedCheck | — | WAJIB untuk demo | selesai [TESTED] pada website B; (c) lewat web/proxy [PLANNED] (S4) |
-| S4 | Proxy :8443/:8444 + filter respons + dekripsi terkendali + audit | 3–4 j | WAJIB untuk demo | [PLANNED] |
+| S4 | Proxy :8443/:8444 + filter respons + dekripsi terkendali + audit | — | WAJIB untuk demo | selesai [TESTED] dengan web tiruan; integrasi web A/B menunggu Arfa |
 | S5 + U4 | Generator 100 rb/1 jt + `benchmark` + halaman Kinerja | 3–4 j | penting | [PLANNED] |
 | U5 | Kunci & Audit (perlu endpoint baca-saja KMS), Patch, Dockerfile/compose, README akhir | 2–3 j | **garis potong** | [PLANNED] |
 
-Sisa ±8–11 jam. Fase setelah garis potong yang tidak sempat dikerjakan tetap ditandai [PLANNED], tidak diklaim.
+Sisa ±5–8 jam. Fase setelah garis potong yang tidak sempat dikerjakan tetap ditandai [PLANNED], tidak diklaim.
 
 ## 6. Catatan teknis untuk fase berikutnya
 * **Kunci & Audit (U5):** konsol tidak membaca `.local/kms/` langsung (KMS proses terpisah); tambahkan

@@ -130,7 +130,7 @@ function Scenarios({ ev }: { ev: EvidenceData }) {
 
       <Card title="(c) Pengguna sah tetap terlayani" icon={<Users className="size-5 text-accent" aria-hidden />} actions={<Badge tone="safe">[TESTED] level database</Badge>}>
         <p className="mb-1 text-xs text-muted">{c.via}. Peran <code className="font-mono">anggota</code> hanya membaca record miliknya (member {c.member_id_for_self_role}).</p>
-        <p className="mb-3 text-xs text-muted">Lewat web/proxy: <Label status="PLANNED" /> (tahap S4; dekripsi terkendali oleh proxy).</p>
+        <p className="mb-3 text-xs text-muted">Lewat proxy (:8443/:8444): <Label status="IMPLEMENTED" /> dekripsi per peran sesuai matriks; diuji dengan web tiruan, menunggu web A/B yang mengirim header <code className="font-mono">X-Palmerah-Role</code>.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -159,7 +159,7 @@ function Scenarios({ ev }: { ev: EvidenceData }) {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-muted">Kolom berlevel full tampil sebagai envelope/token karena VIEW tidak mendekripsi (kunci tidak ada di database); proxy yang mendekripsi sesuai peran (ASUMSI A14). Arahkan kursor ke sel untuk nilai tersimpan yang terpotong.</p>
+        <p className="mt-3 text-xs text-muted">Di level database, kolom berlevel full tampil sebagai envelope/token karena VIEW tidak mendekripsi (kunci tidak ada di database); proxy yang mendekripsi sesuai peran (ASUMSI A14). Arahkan kursor ke sel untuk nilai tersimpan yang terpotong.</p>
       </Card>
     </>
   );

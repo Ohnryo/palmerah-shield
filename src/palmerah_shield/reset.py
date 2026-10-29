@@ -7,7 +7,7 @@ from __future__ import annotations
 import time
 from typing import Callable
 
-from . import devenv, seed
+from . import devenv, ops, seed
 from .config import settings
 
 RESET_HOOKS: list[Callable[[], None]] = []
@@ -21,14 +21,17 @@ def write_mode(mode: str) -> None:
     f.write_text(f"MODE={mode}\n", encoding="ascii")
 
 
+@ops.locked("reset")
 def reset() -> dict[str, object]:
     t0 = time.perf_counter()
     devenv.init()
     devenv.start()
     from .apply import cleanup_all
+    ops.step("cleanup")
     cleanup_all()                       # roles, app logins, apply state, token vault
     for hook in RESET_HOOKS:
         hook()
+    ops.step("seed")
     counts = seed.load_all()
     write_mode("vuln")
     return {"mode": "vuln", "rows": counts, "seconds": round(time.perf_counter() - t0, 2)}

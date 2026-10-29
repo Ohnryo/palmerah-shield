@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from .access import ensure_matrix, field_for, validate
+from . import ops
 from .config import OUT
 from .reference import INTERNAL, KREDENSIAL, NON_PII, PUBLIK, QUASI_ID, SANGAT_TINGGI, TINGGI_KONTAK, TINGGI_SOSIAL
 
@@ -93,6 +94,7 @@ def decide(f: dict, field: str) -> dict:
     return {"controls": controls, "reason": reason, "limitations": limits, "needs_human_review": review is not None, "review_note": review}
 
 
+@ops.locked("plan")
 def plan(target: str, inventory: Path | None = None, out_dir: Path = OUT) -> dict:
     inv_path = inventory or out_dir / f"inventory_{target}.json"
     if not inv_path.exists():

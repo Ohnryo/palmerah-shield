@@ -12,7 +12,8 @@ dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `roll
 |---|---|---|
 | S0 | Kerangka CLI, fixture website A (MySQL :3306) dan B (PostgreSQL :5432) sesuai skema kontrak, `make reset` | [TESTED] 11 uji |
 | S1 | `shield scan` (dump `.sql` MySQL/PG atau `--dsn` live) + presisi/recall vs klasifikasi kontrak → `out/inventory.json` | [TESTED] 9 uji |
-| U0–U4 | Konsol web (lihat docs/PLAN.md) | [PLANNED] |
+| U0 | Konsol web `shield console` (https://localhost:8700): login token, CSRF, TLS 1.3, runner + SSE, kunci operasi bersama CLI, Beranda | [TESTED] 17 uji + uji browser |
+| U1–U5 | Halaman Scan, Rencana, Terapkan, Bukti, Kinerja, Kunci & Audit, Patch (lihat docs/PLAN.md) | [PLANNED] |
 | S2 | `shield plan` + `access_matrix.json` (7 peran × field) → `out/plan.json`: kontrol per kolom + alasan + batas + daftar *needs human review* | [TESTED] 9 uji |
 | S3 | KMS terpisah :8200, `shield apply` / `rollback` / `patch` → `out/apply_report.json`, `MODE=hardened` | [TESTED] 22 uji (A & B live) |
 | S4 | Reverse proxy TLS :8443/:8444, filter respons per peran, audit akses PII | [PLANNED] |
@@ -30,6 +31,16 @@ python -m venv .venv
 .venv/Scripts/python -m palmerah_shield reset        # = make reset: fixture A & B dari seed, MODE=vuln (~3 dtk)
 .venv/Scripts/python -m pytest -q
 ```
+
+### Konsol web
+
+```bash
+cd web && npm ci && npm run build && cd ..
+.venv/Scripts/python -m palmerah_shield console     # cetak URL + token login sekali pakai
+```
+
+Buka `https://localhost:8700` (browser perlu mempercayai `.local/certs/ca.crt`). Konsol memanggil inti yang sama dan
+menulis `out/` yang sama dengan CLI; selama satu operasi berjalan (dari CLI atau konsol), operasi lain ditolak.
 
 `make` tidak tersedia di Windows tanpa instalasi tambahan; `Makefile` berisi perintah yang sama untuk Linux/Docker.
 

@@ -109,6 +109,13 @@ def rollback(target: str = typer.Option(..., "--target", "-t")) -> None:
 
 
 @app.command()
+def console(port: int = typer.Option(8700, "--port", help="HTTPS port on 127.0.0.1")) -> None:
+    """Web console (https://localhost:8700): same core and out/ files as this CLI. Prints a one-time login token."""
+    from .console.server import serve
+    serve(port)
+
+
+@app.command()
 def reset() -> None:
     """Back to the vulnerable starting point (MODE=vuln). Idempotent; used by `make reset`."""
     _print(do_reset())

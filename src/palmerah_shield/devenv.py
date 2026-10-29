@@ -1,6 +1,6 @@
 """Local fixture services for development without Docker: a test CA, MariaDB on :3306 and PostgreSQL on :5432,
 both listening on 127.0.0.1 only and refusing connections without TLS. In Docker the same roles are played by
-the compose services (see compose.yaml); the ports and database names are the contract's."""
+the compose services (compose.yaml, planned in S5); the ports and database names are the contract's."""
 from __future__ import annotations
 
 import datetime as dt

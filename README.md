@@ -16,7 +16,7 @@ dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `roll
 | S2 | `shield plan` + `access_matrix.json` (7 peran × field) → `out/plan.json`: kontrol per kolom + alasan + batas + daftar *needs human review* | [TESTED] 9 uji |
 | S3 | KMS terpisah :8200, `shield apply` / `rollback` / `patch` → `out/apply_report.json`, `MODE=hardened` | [TESTED] 22 uji (A & B live) |
 | S4 | Reverse proxy TLS :8443/:8444, filter respons per peran, audit akses PII | [PLANNED] |
-| S5 | Patch kode (needs human review), `shield benchmark`, Dockerfile/compose, README skenario bocor | [PLANNED] |
+| S5 | `shield benchmark`, Dockerfile/compose (patch kode sudah ada di S3) | [PLANNED] |
 
 ## Mulai (mesin dev Windows, tanpa Docker)
 

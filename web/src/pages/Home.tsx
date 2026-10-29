@@ -128,7 +128,7 @@ function label(r: RedcheckResult) {
   return { target, mode: r.mode ?? "?" };
 }
 
-function Scoreboard({ data }: { data: Status["redcheck"] }) {
+export function Scoreboard({ data }: { data: Status["redcheck"] }) {
   // before -> after: vuln columns first, then hardened, each grouped by target
   const order = (m?: string) => (m === "vuln" ? 0 : m === "hardened" ? 1 : 2);
   const valid = data.results

@@ -166,7 +166,7 @@ export interface ApplyReport {
   rerun?: { at: string; result: string };
 }
 
-export const getOut = <T,>(kind: "inventory" | "plan" | "apply_report" | "rollback", t: Target) =>
+export const getOut = <T,>(kind: "inventory" | "plan" | "apply_report" | "rollback" | "evidence", t: Target) =>
   call<T>("GET", `/api/out/${kind}_${t}`);
 
 // ---------- access matrix ----------
@@ -182,7 +182,7 @@ export const putMatrix = (fields: Matrix["fields"]) =>
   call<{ changed: string[]; needs: string }>("PUT", "/api/matrix", { fields });
 
 // ---------- jobs ----------
-export type Op = "scan" | "plan" | "apply" | "rollback" | "reset";
+export type Op = "scan" | "plan" | "apply" | "rollback" | "reset" | "evidence";
 
 export interface JobEvent {
   t?: number;
@@ -222,4 +222,34 @@ export function watchJob(id: string, onEvent: (e: JobEvent) => void): Promise<vo
       resolve();
     };
   });
+}
+
+// ---------- evidence (out/evidence_<t>.json, written by `shield evidence`) ----------
+export type CellKind = "none" | "PLAINTEXT" | "envelope" | "masked" | "token" | "other" | "error" | "no-row";
+
+export interface Evidence {
+  target: string;
+  database: string;
+  generated_at: string;
+  fields: string[];
+  a_dump_without_keys: {
+    label: string;
+    row: string;
+    columns: { field: string; table: string; column: string; stored_column: string; row_id: number; kind: CellKind; stored: string | null; leak: boolean; original_masked: string | null }[];
+    apply_report_sample: { sample_values?: number; found_in_dump?: number };
+  };
+  b_dump_with_keys: {
+    label: string;
+    shield_keys_rows: number;
+    sample: { key_id: string; name: string; purpose: string; wrapped: string }[];
+    attempt?: { column: string; wrapped_dek_as_key?: string; kms_with_wrong_token?: string; kms_authorised?: string; error?: string };
+    residual_risk_written: string[];
+  };
+  c_legitimate_users: {
+    label: string;
+    via: string;
+    member_id_for_self_role: number;
+    roles: Record<string, { readable: number; plaintext_cells: number; cells: Record<string, { kind: CellKind; value: string | null }> }>;
+  };
+  plaintext_cells_total: number;
 }

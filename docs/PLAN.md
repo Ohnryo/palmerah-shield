@@ -64,12 +64,12 @@ Presentasi 31 Oktober. Urutan: inti dulu, lalu UI, dengan garis potong yang jela
 | U0 | API FastAPI + auth + runner/SSE + kunci operasi di inti + shell React + design system + Beranda | — | WAJIB | selesai [TESTED] |
 | U1 | Halaman Scan dan Rencana (+ editor matriks; unggah dump `.sql` belum) | — | WAJIB | selesai [TESTED] (kecuali unggah dump: [PLANNED]) |
 | U2 | Halaman Terapkan (pratinjau, konfirmasi nama target, progres SSE, laporan berlabel, rollback) | — | WAJIB | selesai [TESTED] |
-| U3 | Halaman Bukti; bukti level DB dulu (tidak bergantung web Arfa) | 2–3 j | WAJIB untuk demo | [PLANNED] |
+| U3 | `shield evidence` + halaman Bukti (a)(b)(c) level DB; scoreboard sebelum/sesudah dari RedCheck | — | WAJIB untuk demo | selesai [TESTED] pada website B; (c) lewat web/proxy [PLANNED] (S4) |
 | S4 | Proxy :8443/:8444 + filter respons + dekripsi terkendali + audit | 3–4 j | WAJIB untuk demo | [PLANNED] |
 | S5 + U4 | Generator 100 rb/1 jt + `benchmark` + halaman Kinerja | 3–4 j | penting | [PLANNED] |
 | U5 | Kunci & Audit (perlu endpoint baca-saja KMS), Patch, Dockerfile/compose, README akhir | 2–3 j | **garis potong** | [PLANNED] |
 
-Sisa ±10–14 jam. Fase setelah garis potong yang tidak sempat dikerjakan tetap ditandai [PLANNED], tidak diklaim.
+Sisa ±8–11 jam. Fase setelah garis potong yang tidak sempat dikerjakan tetap ditandai [PLANNED], tidak diklaim.
 
 ## 6. Catatan teknis untuk fase berikutnya
 * **Kunci & Audit (U5):** konsol tidak membaca `.local/kms/` langsung (KMS proses terpisah); tambahkan

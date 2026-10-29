@@ -107,6 +107,7 @@ def test_out_files_whitelisted(env):
     assert c.get("/api/out/inventory_b").json()["target"] == "b"
     assert c.get("/api/out/..%2F..%2F.env").status_code == 404
     assert c.get("/api/out/credentials").status_code == 404
+    assert c.get("/api/out/evidence_a").status_code == 404       # allowed name, not produced yet
 
 
 def test_apply_needs_typed_target_name(env):
@@ -181,3 +182,11 @@ def test_matrix_read_edit_validate_and_audit(env):
     assert c.put("/api/matrix", json={"fields": {"nik": {"sdm": "full"}}}, headers=h).status_code == 422
     assert c.get("/api/matrix").json()["fields"]["nik"]["public"] == "none"
     assert c.put("/api/matrix", json={"fields": {"nik": row}}).status_code == 403
+
+
+def test_evidence_job_needs_no_confirmation(env):
+    c = env["client"]
+    h = login(c)
+    env["gate"].set()
+    assert c.post("/api/jobs", json={"op": "evidence", "target": "b"}, headers=h).status_code == 202
+    assert c.post("/api/jobs", json={"op": "evidence"}, headers=h).status_code in (409, 422)   # target required

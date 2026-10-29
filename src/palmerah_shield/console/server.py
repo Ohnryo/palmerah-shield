@@ -42,7 +42,7 @@ DIST = ROOT / "web" / "dist"
 TARGETS = {"a": {"name": "web-legacy", "db": "MySQL :3306 (web_legacy)", "url": "http://localhost:8080", "proxy": "https://localhost:8443"},
            "b": {"name": "web-modern", "db": "PostgreSQL :5432 (web_modern)", "url": "http://localhost:3000", "proxy": "https://localhost:8444"}}
 # out/ files the UI may read (all written by Shield with masked samples only)
-OUT_FILES = {f"{kind}_{t}": f"{kind}_{t}.json" for kind in ("inventory", "plan", "apply_report", "rollback") for t in TARGETS}
+OUT_FILES = {f"{kind}_{t}": f"{kind}_{t}.json" for kind in ("inventory", "plan", "apply_report", "rollback", "evidence") for t in TARGETS}
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; "
        "object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
 
@@ -124,7 +124,7 @@ def services() -> dict:
 
 # ---------- jobs (one at a time; same lock as the CLI) ----------
 class JobRequest(BaseModel):
-    op: Literal["scan", "plan", "apply", "rollback", "reset"]
+    op: Literal["scan", "plan", "apply", "rollback", "reset", "evidence"]
     target: Literal["a", "b"] | None = None
     confirm: str | None = None
 
@@ -160,6 +160,10 @@ def _run_op(op: str, target: str | None, out_dir: Path) -> dict:
     if op == "rollback":
         from ..apply import rollback
         return rollback(target, out_dir=out_dir)
+    if op == "evidence":
+        from ..evidence import evidence
+        r = evidence(target, out_dir=out_dir)
+        return {"plaintext_cells_total": r["plaintext_cells_total"]}
     from ..reset import reset
     return reset()
 

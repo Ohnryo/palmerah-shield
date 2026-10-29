@@ -94,6 +94,17 @@ def apply(target: str = typer.Option(..., "--target", "-t"),
 
 
 @app.command()
+def evidence(target: str = typer.Option(..., "--target", "-t")) -> None:
+    """Live proof of the 3 leak scenarios (dump without keys / with keys / legitimate roles) -> out/evidence_<target>.json."""
+    from .evidence import evidence as do_evidence
+    r = do_evidence(target)
+    _print({"target": target, "out": f"out/evidence_{target}.json", "plaintext_cells_total": r["plaintext_cells_total"],
+            "dump_without_keys_leaks": sum(c["leak"] for c in r["a_dump_without_keys"]["columns"]),
+            "with_keys": r["b_dump_with_keys"].get("attempt"),
+            "readable_fields_per_role": {k: v["readable"] for k, v in r["c_legitimate_users"]["roles"].items()}})
+
+
+@app.command()
 def patch(target: str = typer.Option(..., "--target", "-t"),
           app_src: Path = typer.Option(None, "--app-src", exists=True, file_okay=False, help="website source (PHP) to search for code fixes")) -> None:
     """Write suggested code changes to out/patches/<target>/ (needs human review; Shield never edits app code)."""

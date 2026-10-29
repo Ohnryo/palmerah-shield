@@ -158,6 +158,7 @@ def pg_init() -> None:
 # --- palmerah fixture ---
 port = {s.pg_port}
 listen_addresses = '127.0.0.1'
+unix_socket_directories = ''   # TCP + TLS only (also avoids /var/run/postgresql on Debian)
 ssl = on
 ssl_cert_file = 'server.crt'
 ssl_key_file = 'server.key'
@@ -183,6 +184,10 @@ def pg_start() -> None:
     # PostgreSQL reads its certificate from the data directory; copy the current one on every start
     shutil.copyfile(CERTS / "server.crt", PG_DATA / "server.crt")
     shutil.copyfile(CERTS / "server.key", PG_DATA / "server.key")
+    try:
+        (PG_DATA / "server.key").chmod(0o600)       # PostgreSQL refuses a key readable by others (Linux/macOS)
+    except OSError:
+        pass
     log = LOCAL / "pg-server.log"   # outside the data directory: crash recovery fsyncs every file in it
     if sys.platform == "win32":
         # a postmaster started from a console process receives that console's Ctrl+C when the caller exits

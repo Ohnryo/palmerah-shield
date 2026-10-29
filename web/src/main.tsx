@@ -8,6 +8,7 @@ import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Apply } from "./pages/Apply";
+import { Bukti } from "./pages/Evidence";
 import { Plan } from "./pages/Plan";
 import { Planned } from "./pages/Planned";
 import { Scan } from "./pages/Scan";
@@ -47,17 +48,7 @@ function App() {
           { path: "scan", element: <Scan /> },
           { path: "rencana", element: <Plan /> },
           { path: "terapkan", element: <Apply /> },
-          {
-            path: "bukti",
-            element: (
-              <Planned title="Bukti" phase="U3" items={[
-                "(a) dump tanpa kunci: baris contoh sebelum (tersamar) dan sesudah (ciphertext/token)",
-                "(b) dump + kunci: apa yang masih melindungi dan sisa risikonya",
-                "(c) pengguna sah: hasil per peran (level DB sekarang; lewat web/proxy setelah S4)",
-                "Leak scoreboard sebelum vs sesudah dari RedCheck",
-              ]} />
-            ),
-          },
+          { path: "bukti", element: <Bukti /> },
           {
             path: "kinerja",
             element: (

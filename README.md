@@ -15,11 +15,12 @@ dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `roll
 | U0 | Konsol web `shield console` (https://localhost:8700): login token, CSRF, TLS 1.3, runner + SSE, kunci operasi bersama CLI, Beranda | [TESTED] 17 uji + uji browser |
 | U1–U2 | Halaman Scan, Rencana (+ editor `access_matrix.json`), Terapkan (konfirmasi nama target, progres live, rollback) | [TESTED] 18 uji API + uji browser alur penuh dengan runner palsu; belum dengan database nyata |
 | U3 | `shield evidence -t a|b` + halaman Bukti: (a) isi dump tanpa kunci, (b) dump + kunci terbungkus (DEK terbungkus, token KMS salah, jalur sah), (c) bacaan per peran lewat login aplikasi → `out/evidence_<t>.json` | [TESTED] live pada website B (PostgreSQL) dengan dump pengganti sintetis: 0 sel plaintext; website A belum diuji live |
-| U4–U5 | Halaman Kinerja, Kunci & Audit, Patch; unggah dump `.sql` (lihat docs/PLAN.md) | [PLANNED] |
+| – | Unggah dump `.sql` lewat konsol (lihat docs/PLAN.md) | [PLANNED] |
 | S2 | `shield plan` + `access_matrix.json` (7 peran × field) → `out/plan.json`: kontrol per kolom + alasan + batas + daftar *needs human review* | [TESTED] 9 uji |
 | S3 | KMS terpisah :8200, `shield apply` / `rollback` / `patch` → `out/apply_report.json`, `MODE=hardened` | [TESTED] 22 uji (A & B live) |
 | S4 | `shield proxy -t a|b`: TLS 1.3 :8443/:8444, peran dari header respons web `X-Palmerah-Role` (header klien dibuang), filter JSON per field sesuai `access_matrix.json`, dekripsi/detokenisasi lewat KMS, audit + alarm baca massal | [TESTED] 9 uji + live pada website B (PostgreSQL) dengan web B tiruan; menunggu web A/B asli |
-| S5 | `shield benchmark`, Dockerfile/compose (patch kode sudah ada di S3) | [PLANNED] |
+| S5 + U4 | Generator data (`seed.scale_rows`), `shield benchmark -t a|b --rows N` → `out/benchmark_<t>.json`, halaman Kinerja; indeks pada kolom blind index | [TESTED] website B 10 rb + 100 rb anggota (lihat Hasil benchmark); 1 jt belum dijalankan |
+| U5 | Kunci & Audit, Patch di konsol, Dockerfile/compose | [PLANNED] |
 
 ## Mulai (mesin dev Windows, tanpa Docker)
 

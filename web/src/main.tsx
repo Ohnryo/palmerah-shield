@@ -9,6 +9,7 @@ import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Apply } from "./pages/Apply";
 import { Bukti } from "./pages/Evidence";
+import { Performance } from "./pages/Performance";
 import { Plan } from "./pages/Plan";
 import { Planned } from "./pages/Planned";
 import { Scan } from "./pages/Scan";
@@ -49,15 +50,7 @@ function App() {
           { path: "rencana", element: <Plan /> },
           { path: "terapkan", element: <Apply /> },
           { path: "bukti", element: <Bukti /> },
-          {
-            path: "kinerja",
-            element: (
-              <Planned title="Kinerja" phase="S5 + U4" items={[
-                "p50/p95, throughput, error, CPU/RAM, ukuran data",
-                "Backup/restore sebelum vs sesudah pada 100 ribu dan 1 juta baris",
-              ]} />
-            ),
-          },
+          { path: "kinerja", element: <Performance /> },
           {
             path: "kunci-audit",
             element: (

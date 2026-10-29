@@ -18,6 +18,9 @@
   --warn-bg: #3a2a10;
   --planned: #8ea4c8;
   --planned-bg: #1b2433;
+  /* chart series (categorical slots 1-2, validated vs this surface: dataviz validate_palette.js) */
+  --series-1: #3987e5;
+  --series-2: #d95926;
   color-scheme: dark;
 }
 
@@ -37,6 +40,8 @@
   --warn-bg: #fff3df;
   --planned: #44597a;
   --planned-bg: #e9eef6;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
   color-scheme: light;
 }
 
@@ -61,6 +66,8 @@
   --color-warn-bg: var(--warn-bg);
   --color-planned: var(--planned);
   --color-planned-bg: var(--planned-bg);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
   --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }

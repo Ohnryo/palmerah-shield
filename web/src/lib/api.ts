@@ -166,7 +166,7 @@ export interface ApplyReport {
   rerun?: { at: string; result: string };
 }
 
-export const getOut = <T,>(kind: "inventory" | "plan" | "apply_report" | "rollback" | "evidence", t: Target) =>
+export const getOut = <T,>(kind: "inventory" | "plan" | "apply_report" | "rollback" | "evidence" | "benchmark", t: Target) =>
   call<T>("GET", `/api/out/${kind}_${t}`);
 
 // ---------- access matrix ----------
@@ -182,7 +182,7 @@ export const putMatrix = (fields: Matrix["fields"]) =>
   call<{ changed: string[]; needs: string }>("PUT", "/api/matrix", { fields });
 
 // ---------- jobs ----------
-export type Op = "scan" | "plan" | "apply" | "rollback" | "reset" | "evidence";
+export type Op = "scan" | "plan" | "apply" | "rollback" | "reset" | "evidence" | "benchmark";
 
 export interface JobEvent {
   t?: number;
@@ -252,4 +252,27 @@ export interface Evidence {
     roles: Record<string, { readable: number; plaintext_cells: number; cells: Record<string, { kind: CellKind; value: string | null }> }>;
   };
   plaintext_cells_total: number;
+}
+
+// ---------- benchmark (out/benchmark_<t>.json) ----------
+export interface Latency { n: number; errors: number; p50_ms?: number; p95_ms?: number; mean_ms?: number; qps?: number }
+export interface Phase {
+  lookup: Latency;
+  search: Latency;
+  db_bytes: number;
+  dump_s: number;
+  dump_bytes: number;
+  restore_s?: number;
+  client_cpu_s: number | null;
+  peak_rss_mb: number | null;
+}
+export interface Benchmark {
+  target: string;
+  database: string;
+  generated_at: string;
+  queries_per_workload: number;
+  role_after: string;
+  machine: { platform: string; python: string; cpus: number };
+  sizes: { members: number; load_s: number; before: Phase; after: Phase; apply: { seconds: number; members_per_s: number; steps: Record<string, number> }; rollback_s: number }[];
+  notes: string[];
 }

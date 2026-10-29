@@ -150,6 +150,44 @@ def load_website_b(data: dict[str, list[dict]], passwords: dict[str, str]) -> di
     return counts
 
 
+def scale_rows(cols: list[str], rows: list[list], n: int, seed: int = 2027) -> list[list]:
+    """Enlarged synthetic data for `shield benchmark`: n rows built from the seed rows, with fresh unique identifiers
+    (no_ktp 14, npwp 15, rekening 16 digits, handphone, email, pengguna) so the data has realistic cardinality.
+    Names, addresses and the contract's derived rules come from the seed row; nothing here is real."""
+    rng = random.Random(seed)
+    ix = {c: i for i, c in enumerate(cols)}
+    out, used = [], set()
+
+    def digits(k: int) -> str:
+        while True:
+            v = "".join(rng.choice("0123456789") for _ in range(k))
+            if v not in used:
+                used.add(v)
+                return v
+
+    for i in range(n):
+        r = list(rows[i % len(rows)])
+        r[ix["no_ktp"]], r[ix["npwp"]], r[ix["rekening"]] = digits(14), digits(15), digits(16)
+        r[ix["handphone"]] = "08" + digits(10)
+        local, _, domain = str(r[ix["email"]]).partition("@")
+        r[ix["email"]] = f"{local}.{i}@{domain or 'example.com'}"
+        r[ix["pengguna"]] = f"{r[ix['pengguna']]}{i}"
+        out.append(r)
+    return out
+
+
+def load_target(target: str, cols: list[str] | None = None, rows: list[list] | None = None) -> dict:
+    """Reload one website (default: from the seed dump). Website B gets fresh login passwords."""
+    if cols is None:
+        cols, rows = dump_rows()
+    if target == "a":
+        return {"anggota": load_website_a(cols, rows)}
+    passwords = {f"{r}1": secrets.token_urlsafe(18) for r in ROLES}
+    LOCAL.mkdir(exist_ok=True)
+    (LOCAL / "credentials.json").write_text(json.dumps(passwords, indent=2), encoding="utf-8")
+    return load_website_b(to_canonical(cols, rows), passwords)
+
+
 def load_all() -> dict[str, object]:
     cols, rows = dump_rows()
     passwords = {f"{r}1": secrets.token_urlsafe(18) for r in ROLES}

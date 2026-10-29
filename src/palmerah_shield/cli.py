@@ -105,6 +105,20 @@ def evidence(target: str = typer.Option(..., "--target", "-t")) -> None:
 
 
 @app.command()
+def benchmark(target: str = typer.Option(..., "--target", "-t"),
+              rows: list[int] = typer.Option(None, "--rows", help="member counts, repeatable (default 10000 and 100000)")) -> None:
+    """Cost of the protections before vs after on enlarged synthetic data -> out/benchmark_<target>.json.
+    DESTRUCTIVE for the target's data (reloaded from the seed at the end, MODE=vuln): not during the demo."""
+    from .benchmark import benchmark as do_benchmark
+    r = do_benchmark(target, rows or None)
+    _print({"target": target, "out": f"out/benchmark_{target}.json",
+            "sizes": [{"members": x["members"], "apply_s": x["apply"]["seconds"],
+                       "lookup_p95_ms": [x["before"]["lookup"].get("p95_ms"), x["after"]["lookup"].get("p95_ms")],
+                       "search_p95_ms": [x["before"]["search"].get("p95_ms"), x["after"]["search"].get("p95_ms")],
+                       "db_mb": [round(x["before"]["db_bytes"] / 1e6, 1), round(x["after"]["db_bytes"] / 1e6, 1)]} for x in r["sizes"]]})
+
+
+@app.command()
 def patch(target: str = typer.Option(..., "--target", "-t"),
           app_src: Path = typer.Option(None, "--app-src", exists=True, file_okay=False, help="website source (PHP) to search for code fixes")) -> None:
     """Write suggested code changes to out/patches/<target>/ (needs human review; Shield never edits app code)."""

@@ -66,10 +66,10 @@ Presentasi 31 Oktober. Urutan: inti dulu, lalu UI, dengan garis potong yang jela
 | U2 | Halaman Terapkan (pratinjau, konfirmasi nama target, progres SSE, laporan berlabel, rollback) | — | WAJIB | selesai [TESTED] |
 | U3 | `shield evidence` + halaman Bukti (a)(b)(c) level DB; scoreboard sebelum/sesudah dari RedCheck | — | WAJIB untuk demo | selesai [TESTED] pada website B; (c) lewat web/proxy [PLANNED] (S4) |
 | S4 | Proxy :8443/:8444 + filter respons + dekripsi terkendali + audit | — | WAJIB untuk demo | selesai [TESTED] dengan web tiruan; integrasi web A/B menunggu Arfa |
-| S5 + U4 | Generator 100 rb/1 jt + `benchmark` + halaman Kinerja | 3–4 j | penting | [PLANNED] |
+| S5 + U4 | Generator (`seed.scale_rows`) + `shield benchmark` + halaman Kinerja | — | penting | selesai [TESTED] pada website B 10 rb + 100 rb anggota; 1 jt belum dijalankan (`--rows 1000000`) |
 | U5 | Kunci & Audit (perlu endpoint baca-saja KMS), Patch, Dockerfile/compose, README akhir | 2–3 j | **garis potong** | [PLANNED] |
 
-Sisa ±5–8 jam. Fase setelah garis potong yang tidak sempat dikerjakan tetap ditandai [PLANNED], tidak diklaim.
+Sisa ±2–3 jam (U5, garis potong). Fase setelah garis potong yang tidak sempat dikerjakan tetap ditandai [PLANNED], tidak diklaim.
 
 ## 6. Catatan teknis untuk fase berikutnya
 * **Kunci & Audit (U5):** konsol tidak membaca `.local/kms/` langsung (KMS proses terpisah); tambahkan
@@ -82,7 +82,8 @@ Sisa ±5–8 jam. Fase setelah garis potong yang tidak sempat dikerjakan tetap d
   login aplikasi ditolak di tabel dasar); jalur web/proxy menyusul S4.
 * **Nama berkas RedCheck:** kontrak menetapkan `out/redcheck_<mode>.json` tanpa target, sehingga hasil A dan B saling
   menimpa. Usulan ke Teman 2: `redcheck_<target>_<mode>.json` (konsol sudah membaca keduanya; `target` diambil dari isi).
-* **Kinerja (S5):** yang dapat diukur tanpa web/proxy: query lewat VIEW, waktu `apply`, ukuran data, backup/restore.
+* **Kinerja (S5, selesai):** benchmark memuat ulang data target (destruktif, berakhir di seed + MODE=vuln); apply sekarang
+  membuat indeks pada kolom `*_bidx` agar pencarian NIK/email tidak memindai tabel.
 
 ## 7. Paket
 * Python: `fastapi`, `uvicorn` (dependensi utama), `httpx` (uji).

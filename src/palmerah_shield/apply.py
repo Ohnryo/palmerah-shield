@@ -363,6 +363,9 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
                 for name, typ in new_cols:
                     if name not in d.columns(cur, table):
                         cur.execute(f"ALTER TABLE {d.q(table)} ADD COLUMN {d.q(name)} {typ}")
+                for name, _ in new_cols:          # equality search on a blind index must not scan the table
+                    if name.endswith("_bidx"):
+                        cur.execute(f"CREATE INDEX IF NOT EXISTS {d.q('ix_' + table + '_' + name)} ON {d.q(table)} ({d.q(name)})")
                 # migrate
                 set_cols = sorted({k for u in updates.values() for k in u})
                 if set_cols:

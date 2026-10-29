@@ -28,7 +28,7 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-from . import crypto
+from . import crypto, ops
 from .access import ROLES
 from .config import LOCAL, OUT, settings
 from .kms import Client
@@ -134,7 +134,7 @@ class PG(Dialect):
         s = settings()
         env = {**os.environ, "PGPASSWORD": s.pg_super_password, "PGSSLMODE": "verify-full", "PGSSLROOTCERT": str(s.ca_cert)}
         return subprocess.run([str(s.pg_home / "bin" / f"pg_dump{EXE}"), "-h", "127.0.0.1", "-p", str(s.pg_port), "-U", "postgres",
-                               "--no-owner", "--no-privileges", "--inserts", self.db], env=env, capture_output=True, check=True).stdout
+                               "--no-owner", "--no-privileges", self.db], env=env, capture_output=True, check=True).stdout
 
     def restore(self, sql: bytes) -> None:
         from .db import pg_connect
@@ -283,6 +283,7 @@ def _levels(col: dict, role: str) -> str:
     return v.get(role, "none")
 
 
+@ops.locked("apply")
 def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
     d = DIALECTS[target]()
     plan = json.loads((out_dir / f"plan_{target}.json").read_text(encoding="utf-8"))
@@ -292,6 +293,7 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
         st = json.loads(sf.read_text(encoding="utf-8"))
         if st["plan_hash"] != ph:
             raise RuntimeError("target already hardened with a different plan: run `shield rollback` first")
+        ops.step("verify", note="sudah diterapkan dengan rencana yang sama: hanya verifikasi")
         report = json.loads((out_dir / f"apply_report_{target}.json").read_text(encoding="utf-8"))
         report["rerun"] = {"at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "result": "no-op (already applied with this plan)",
                            "verification": verify(d, plan, st)}
@@ -300,6 +302,7 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
 
     kms = Client("shield-apply")
     kms.health()
+    ops.step("backup", database=d.db)
     b = backup(d, kms)
     steps: list[dict] = []
     app_password = secrets.token_urlsafe(24)
@@ -319,6 +322,7 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
                         or any(_levels(c, r) == "masked" for r in ROLES)]
                 if not todo:
                     continue
+                ops.step("migrate", table=table, columns=len(todo))
                 pk = d.pk(cur, table)
                 names = [c["column"] for c in todo]
                 cur.execute(f"SELECT {d.q(pk)}, {', '.join(d.q(n) for n in names)} FROM {d.q(table)}")
@@ -359,6 +363,9 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
                 for name, typ in new_cols:
                     if name not in d.columns(cur, table):
                         cur.execute(f"ALTER TABLE {d.q(table)} ADD COLUMN {d.q(name)} {typ}")
+                for name, _ in new_cols:          # equality search on a blind index must not scan the table
+                    if name.endswith("_bidx"):
+                        cur.execute(f"CREATE INDEX IF NOT EXISTS {d.q('ix_' + table + '_' + name)} ON {d.q(table)} ({d.q(name)})")
                 # migrate
                 set_cols = sorted({k for u in updates.values() for k in u})
                 if set_cols:
@@ -389,6 +396,7 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
             for kname, k in keys.items():
                 cur.execute(f"INSERT INTO {ktable} (key_id, name, purpose, wrapped, created_at) VALUES (%s, %s, %s, %s, %s)",
                             (k["key_id"], kname, k["purpose"], k["wrapped"], dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")))
+            ops.step("views_and_roles", roles=len(ROLES))
             # views per role and table
             d.setup_views(cur)
             views: dict[str, list[str]] = {r: [] for r in ROLES}
@@ -421,6 +429,7 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
             steps.append({"step": "views_and_roles", "views": sum(len(v) for v in views.values()), "roles": list(d.roles().values()),
                           "app_login": d.app_user})
     except Exception:
+        ops.step("restore_backup", reason="gagal: database dikembalikan dari backup")
         restore_backup(d, kms, b)        # PostgreSQL also rolled back its transaction; MySQL DDL is not transactional
         raise
 
@@ -433,6 +442,7 @@ def apply(target: str, allow_drop: bool = False, out_dir: Path = OUT) -> dict:
              "app_password_file": str(creds), "sample": _sample_originals(originals)}
     sf.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
     write_mode(target, "hardened")
+    ops.step("verify")
     from .patch import generate
     patches = generate(target, None, out_dir)       # code-level fixes as suggestions, never applied automatically
     report = _report(target, d, plan, steps, b, allow_drop, verify(d, plan, state))
@@ -531,8 +541,9 @@ def _report(target: str, d: Dialect, plan: dict, steps: list, b: dict, allow_dro
          "evidence": ("dihapus: " if allow_drop else "menunggu persetujuan manusia: ") + ", ".join(dropped)},
         {"control": "Patch kode aplikasi (login least-privilege, prepared statement, hash sandi)", "status": "[IMPLEMENTED]",
          "evidence": f"out/patches/{target}/ (needs human review; diff prepared statement dibuat bila --app-src diberikan ke `shield patch`)"},
-        {"control": "Reverse proxy TLS + header + filter respons per peran + dekripsi terkendali", "status": "[PLANNED]", "evidence": "tahap S4"},
-        {"control": "Audit akses/dekripsi PII + alarm baca massal", "status": "[IMPLEMENTED]", "evidence": "audit KMS (unwrap, detokenize, alarm >5000 nilai/menit); audit proxy di S4"},
+        {"control": "Reverse proxy TLS + header + filter respons per peran + dekripsi terkendali", "status": "[IMPLEMENTED]",
+         "evidence": f"jalankan `shield proxy -t {target}` (:{8443 if target == 'a' else 8444}); diuji di tests/test_proxy.py; website perlu mengirim header X-Palmerah-Role (ASUMSI A5)"},
+        {"control": "Audit akses/dekripsi PII + alarm baca massal", "status": "[IMPLEMENTED]", "evidence": "audit KMS (unwrap, detokenize, alarm >5000 nilai/menit) + audit proxy per respons (.local/proxy/audit-<t>.log, alarm >2000 nilai/menit per peran)"},
     ]
     return {
         "target": target, "database": d.db, "applied_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
@@ -545,12 +556,14 @@ def _report(target: str, d: Dialect, plan: dict, steps: list, b: dict, allow_dro
 
 
 # ---------- rollback ----------
+@ops.locked("rollback")
 def rollback(target: str, out_dir: Path = OUT) -> dict:
     d = DIALECTS[target]()
     sf = _state_file(target)
     if not sf.exists():
         return {"target": target, "rollback": "nothing to roll back"}
     st = json.loads(sf.read_text(encoding="utf-8"))
+    ops.step("restore_backup", database=d.db)
     restore_backup(d, Client("shield-rollback"), st["backup"])
     sf.unlink()
     Path(st["app_password_file"]).unlink(missing_ok=True)

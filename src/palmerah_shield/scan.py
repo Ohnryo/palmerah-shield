@@ -11,6 +11,7 @@ import re
 from collections import Counter
 from pathlib import Path
 
+from . import ops
 from .config import OUT
 from .detect import HEALTH_TERMS, detect_column
 from .reference import CLASSES, PROTECT, TRAPS, reference_a, reference_b
@@ -147,6 +148,7 @@ def metrics(findings: list[dict], ref: dict) -> dict:
     }
 
 
+@ops.locked("scan")
 def scan(target: str | None = None, dump: Path | None = None, dsn: str | None = None, out_dir: Path = OUT) -> dict:
     if dump:
         tables, source = read_dump(dump), f"dump:{dump.name}"
@@ -160,6 +162,7 @@ def scan(target: str | None = None, dump: Path | None = None, dsn: str | None = 
     else:
         tables, source = read_target(target or "a")
         name = target or "a"
+    ops.step("classify", tables=len(tables))
     findings = classify(tables)
     ref_name, ref = reference_for(tables)
     report = {

@@ -94,6 +94,31 @@ def apply(target: str = typer.Option(..., "--target", "-t"),
 
 
 @app.command()
+def evidence(target: str = typer.Option(..., "--target", "-t")) -> None:
+    """Live proof of the 3 leak scenarios (dump without keys / with keys / legitimate roles) -> out/evidence_<target>.json."""
+    from .evidence import evidence as do_evidence
+    r = do_evidence(target)
+    _print({"target": target, "out": f"out/evidence_{target}.json", "plaintext_cells_total": r["plaintext_cells_total"],
+            "dump_without_keys_leaks": sum(c["leak"] for c in r["a_dump_without_keys"]["columns"]),
+            "with_keys": r["b_dump_with_keys"].get("attempt"),
+            "readable_fields_per_role": {k: v["readable"] for k, v in r["c_legitimate_users"]["roles"].items()}})
+
+
+@app.command()
+def benchmark(target: str = typer.Option(..., "--target", "-t"),
+              rows: list[int] = typer.Option(None, "--rows", help="member counts, repeatable (default 10000 and 100000)")) -> None:
+    """Cost of the protections before vs after on enlarged synthetic data -> out/benchmark_<target>.json.
+    DESTRUCTIVE for the target's data (reloaded from the seed at the end, MODE=vuln): not during the demo."""
+    from .benchmark import benchmark as do_benchmark
+    r = do_benchmark(target, rows or None)
+    _print({"target": target, "out": f"out/benchmark_{target}.json",
+            "sizes": [{"members": x["members"], "apply_s": x["apply"]["seconds"],
+                       "lookup_p95_ms": [x["before"]["lookup"].get("p95_ms"), x["after"]["lookup"].get("p95_ms")],
+                       "search_p95_ms": [x["before"]["search"].get("p95_ms"), x["after"]["search"].get("p95_ms")],
+                       "db_mb": [round(x["before"]["db_bytes"] / 1e6, 1), round(x["after"]["db_bytes"] / 1e6, 1)]} for x in r["sizes"]]})
+
+
+@app.command()
 def patch(target: str = typer.Option(..., "--target", "-t"),
           app_src: Path = typer.Option(None, "--app-src", exists=True, file_okay=False, help="website source (PHP) to search for code fixes")) -> None:
     """Write suggested code changes to out/patches/<target>/ (needs human review; Shield never edits app code)."""
@@ -106,6 +131,21 @@ def rollback(target: str = typer.Option(..., "--target", "-t")) -> None:
     """Restore the database from the encrypted backup taken by apply; drop Shield roles; MODE=vuln."""
     from .apply import rollback as do_rollback
     _print(do_rollback(target))
+
+
+@app.command()
+def proxy(target: str = typer.Option(..., "--target", "-t"),
+          upstream: str = typer.Option(None, "--upstream", help="website URL (default: contract port 8080 / 3000)")) -> None:
+    """TLS reverse proxy (:8443 for A, :8444 for B): per-role field filter, controlled decryption via KMS, audit."""
+    from .proxy import serve
+    serve(target, upstream)
+
+
+@app.command()
+def console(port: int = typer.Option(8700, "--port", help="HTTPS port on 127.0.0.1")) -> None:
+    """Web console (https://localhost:8700): same core and out/ files as this CLI. Prints a one-time login token."""
+    from .console.server import serve
+    serve(port)
 
 
 @app.command()

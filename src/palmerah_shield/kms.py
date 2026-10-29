@@ -11,6 +11,8 @@ HTTP API (Authorization: Bearer <KMS_TOKEN>; X-Caller names the client for the a
   POST /v1/tokenize   {"domain": "nik", "values": [...]}                 -> {"tokens": [...]}
   POST /v1/detokenize {"domain": "nik", "tokens": [...]}                 -> {"values": [...]}
   POST /v1/admin/wipe {}                                                 -> vault + audit emptied (demo reset)
+  GET  /v1/status   (auth)  -> kek_id, tokens per domain, audit line/alert counts   (never key material)
+  GET  /v1/audit?limit=N (auth) -> last N audit lines (caller, op, subject, count; never values)
 """
 from __future__ import annotations
 
@@ -89,6 +91,9 @@ class Vault:
         with self.lock, self.db:
             self.db.execute("DELETE FROM tokens")
 
+    def counts(self) -> dict[str, int]:
+        return dict(self.db.execute("SELECT domain, COUNT(*) FROM tokens GROUP BY domain").fetchall())
+
 
 class KMS:
     def __init__(self, state: Path = STATE):
@@ -123,6 +128,21 @@ class KMS:
                 line["alert"] = f"pembacaan massal: {burst} nilai didetokenisasi dalam {ALERT_WINDOW_S} detik"
             with open(self.audit_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(line) + "\n")
+
+    def audit_tail(self, limit: int) -> list[dict]:
+        try:
+            lines = self.audit_file.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            return []
+        return [json.loads(x) for x in lines[-limit:] if x.strip()]
+
+    def status(self) -> dict:
+        try:
+            lines = self.audit_file.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            lines = []
+        return {"kek_id": self.kek_id, "tokens": self.vault.counts(), "audit_lines": len(lines),
+                "alerts": sum('"alert"' in x for x in lines)}
 
     def datakey(self, name: str) -> dict:
         dek, nonce = os.urandom(32), os.urandom(12)
@@ -162,6 +182,16 @@ def serve(port: int | None = None) -> None:
         def do_GET(self):
             if self.path == "/v1/health":
                 return self._send(200, {"ok": True, "kek_id": kms.kek_id})
+            if not self._authorised():
+                return self._send(401, {"error": "unauthorised"})
+            if self.path == "/v1/status":
+                return self._send(200, kms.status())
+            if self.path.startswith("/v1/audit"):
+                try:
+                    limit = max(1, min(500, int(self.path.partition("limit=")[2] or 100)))
+                except ValueError:
+                    limit = 100
+                return self._send(200, {"lines": kms.audit_tail(limit)})
             self._send(404, {"error": "not found"})
 
         def do_POST(self):
@@ -231,3 +261,14 @@ class Client:
 
     def wipe(self) -> None:
         self._post("/v1/admin/wipe", {})
+
+    def _get(self, path: str) -> dict:
+        req = urllib.request.Request(self.url + path, headers={"Authorization": f"Bearer {self.token}", "X-Caller": self.caller})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read())
+
+    def status(self) -> dict:
+        return self._get("/v1/status")
+
+    def audit(self, limit: int = 100) -> list[dict]:
+        return self._get(f"/v1/audit?limit={int(limit)}")["lines"]

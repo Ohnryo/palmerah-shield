@@ -3,7 +3,7 @@
 Komponen **Shield** dari proyek Palmerah (Final Hackathon DPR RI 2026, "Database Bocor"): CLI yang mengubah website
 dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `rollback`, `benchmark`).
 
-* Sumber kebenaran: [docs/KONTRAK.md](docs/KONTRAK.md). Asumsi dan hal yang perlu disepakati tim: [docs/ASUMSI.md](docs/ASUMSI.md).
+* Sumber kebenaran: [docs/KONTRAK.md](docs/KONTRAK.md). Integrasi website A/B dengan proxy: [docs/INTEGRASI_WEB.md](docs/INTEGRASI_WEB.md). Asumsi dan hal yang perlu disepakati tim: [docs/ASUMSI.md](docs/ASUMSI.md).
 * Semua data **sintetis**; semua layanan hanya di `127.0.0.1` (atau jaringan Docker terisolasi). Tidak ada rahasia di repo.
 
 ## Status
@@ -12,11 +12,15 @@ dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `roll
 |---|---|---|
 | S0 | Kerangka CLI, fixture website A (MySQL :3306) dan B (PostgreSQL :5432) sesuai skema kontrak, `make reset` | [TESTED] 11 uji |
 | S1 | `shield scan` (dump `.sql` MySQL/PG atau `--dsn` live) + presisi/recall vs klasifikasi kontrak → `out/inventory.json` | [TESTED] 9 uji |
-| U0–U4 | Konsol web (lihat docs/PLAN.md) | [PLANNED] |
+| U0 | Konsol web `shield console` (https://localhost:8700): login token, CSRF, TLS 1.3, runner + SSE, kunci operasi bersama CLI, Beranda | [TESTED] 17 uji + uji browser |
+| U1–U2 | Halaman Scan, Rencana (+ editor `access_matrix.json`), Terapkan (konfirmasi nama target, progres live, rollback) | [TESTED] 18 uji API + uji browser alur penuh dengan runner palsu; belum dengan database nyata |
+| U3 | `shield evidence -t a|b` + halaman Bukti: (a) isi dump tanpa kunci, (b) dump + kunci terbungkus (DEK terbungkus, token KMS salah, jalur sah), (c) bacaan per peran lewat login aplikasi → `out/evidence_<t>.json` | [TESTED] live pada website B (PostgreSQL) dengan dump pengganti sintetis: 0 sel plaintext; website A belum diuji live |
+| – | Unggah dump `.sql` lewat konsol (lihat docs/PLAN.md) | [PLANNED] |
 | S2 | `shield plan` + `access_matrix.json` (7 peran × field) → `out/plan.json`: kontrol per kolom + alasan + batas + daftar *needs human review* | [TESTED] 9 uji |
 | S3 | KMS terpisah :8200, `shield apply` / `rollback` / `patch` → `out/apply_report.json`, `MODE=hardened` | [TESTED] 22 uji (A & B live) |
-| S4 | Reverse proxy TLS :8443/:8444, filter respons per peran, audit akses PII | [PLANNED] |
-| S5 | Patch kode (needs human review), `shield benchmark`, Dockerfile/compose, README skenario bocor | [PLANNED] |
+| S4 | `shield proxy -t a|b`: TLS 1.3 :8443/:8444, peran dari header respons web `X-Palmerah-Role` (header klien dibuang), filter JSON per field sesuai `access_matrix.json`, dekripsi/detokenisasi lewat KMS, audit + alarm baca massal | [TESTED] 9 uji + live pada website B (PostgreSQL) dengan web B tiruan; menunggu web A/B asli |
+| S5 + U4 | Generator data (`seed.scale_rows`), `shield benchmark -t a|b --rows N` → `out/benchmark_<t>.json`, halaman Kinerja; indeks pada kolom blind index | [TESTED] website B 10 rb + 100 rb anggota (lihat Hasil benchmark); 1 jt belum dijalankan |
+| U5 | Kunci & Audit, Patch di konsol, Dockerfile/compose | [PLANNED] |
 
 ## Mulai (mesin dev Windows, tanpa Docker)
 
@@ -30,6 +34,16 @@ python -m venv .venv
 .venv/Scripts/python -m palmerah_shield reset        # = make reset: fixture A & B dari seed, MODE=vuln (~3 dtk)
 .venv/Scripts/python -m pytest -q
 ```
+
+### Konsol web
+
+```bash
+cd web && npm ci && npm run build && cd ..
+.venv/Scripts/python -m palmerah_shield console     # cetak URL + token login sekali pakai
+```
+
+Buka `https://localhost:8700` (browser perlu mempercayai `.local/certs/ca.crt`). Konsol memanggil inti yang sama dan
+menulis `out/` yang sama dengan CLI; selama satu operasi berjalan (dari CLI atau konsol), operasi lain ditolak.
 
 `make` tidak tersedia di Windows tanpa instalasi tambahan; `Makefile` berisi perintah yang sama untuk Linux/Docker.
 
@@ -75,7 +89,7 @@ menambah kerahasiaan, usulan drop).
 | Rollback dari backup terenkripsi | data identik dengan sebelum apply | data identik dengan sebelum apply |
 
 ### Skenario bocor (a): dump tanpa kunci
-Satu baris `member_finance` dari `pg_dump` sesudah apply:
+Satu baris `member_finance` dari `pg_dump --inserts` sesudah apply (backup Shield kini memakai format COPY bawaan `pg_dump` agar restore cepat; isi barisnya sama):
 
 ```
 INSERT INTO public.member_finance VALUES (702, '91175523842877', '1338218446986106', 'Bank BCA', '120', 'KPPN Yogyakarta',
@@ -102,6 +116,30 @@ Yang dimaksud "kunci" di sini: isi tabel `shield_keys` (DEK **terbungkus**) ikut
 statement untuk SQL yang dirangkai dari variabel. Diuji pada target PHP `benteng-platform/targets/php-react-demo`: diff dapat
 diterapkan, lolos `php -l`, dan hasil query identik — kecuali tipe JSON angka (`"17"` → `17`), dicatat sebagai perubahan perilaku.
 Query yang dirangkai dan dijalankan di baris berbeda (`login.php`) serta hash MD5 hanya dilaporkan untuk dikerjakan manusia.
+
+## Hasil benchmark (contoh: `examples/out/benchmark_b.json`)
+
+Website B (PostgreSQL 16), container Linux 4 CPU. Data: `seed.scale_rows` dari **dump pengganti sintetis** (dump resmi
+tidak tersedia di mesin uji ini); ulangi dengan `shield benchmark -t b` di mesin demo. 300 kueri per beban; "sesudah" =
+login aplikasi + `SET ROLE sdm` + VIEW, lookup termasuk dekripsi oleh filter proxy.
+
+| | 10 rb sebelum | 10 rb sesudah | 100 rb sebelum | 100 rb sesudah |
+|---|---|---|---|---|
+| Lookup satu anggota p50 / p95 (ms) | 0,11 / 0,20 | 0,23 / 0,61 | 0,09 / 0,20 | 0,32 / 0,54 |
+| Cari NIK p50 / p95 (ms) | 1,28 / 1,42 | 0,11 / 0,18 | 9,68 / 11,41 | 0,13 / 0,22 |
+| Galat kueri | 0 / 600 | 0 / 600 | 0 / 600 | 0 / 600 |
+| Ukuran database (MB) | 21,8 | 54,6 | 125,5 | 469,8 |
+| Dump (MB / detik) | 7,9 / 0,14 | 23,5 / 0,23 | 80,5 / 0,78 | 236,4 / 1,55 |
+| Apply (detik) | – | 9,4 | – | 96,1 (1.040 anggota/detik) |
+| Rollback (detik) | – | 0,3 | – | 2,6 |
+
+* Lookup sekitar 2–3× lebih lambat (tetap < 1 ms p95): biaya dekripsi per baris oleh proxy.
+* Cari NIK lebih cepat **karena indeks** pada `nik_bidx` (skema rentan tidak mengindeks `nik`), bukan karena enkripsi.
+* Biaya terbesar ada di penyimpanan: database ±3,7× dan dump ±3× lebih besar (ciphertext base64 + padding + kolom bidx/mask).
+* RSS puncak proses benchmark 936 MB pada 100 rb: `apply` memuat tabel ke memori; untuk 1 jt baris perlu migrasi bertahap
+  (belum dibuat). CPU server database tidak diukur.
+* Backup PostgreSQL kini memakai format COPY: dengan `pg_dump --inserts` restore 100 rb anggota butuh 294 detik dan
+  rollback 324 detik; dengan COPY rollback 2,6 detik. Pemeriksaan "nilai asli di dump" tetap 0 / 400 dengan format baru.
 
 ## Fixture
 

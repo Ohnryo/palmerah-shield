@@ -1,0 +1,1297 @@
+{
+  "target": "b",
+  "generated_at": "2026-10-29T16:17:12+00:00",
+  "from_inventory": "inventory_b.json",
+  "access_matrix": {
+    "file": "access_matrix.json",
+    "created_now": false,
+    "problems": []
+  },
+  "controls_catalog": {
+    "encrypt-AEAD": {
+      "what": "AES-256-GCM, nonce acak 96-bit per nilai, AAD = tabel:kolom:id; DEK per kolom dibungkus KEK di KMS terpisah",
+      "limits": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ]
+    },
+    "tokenize": {
+      "what": "nilai diganti token format-preserving (panjang dan jenis karakter sama); nilai asli + pemetaan disimpan di vault KMS",
+      "limits": [
+        "detokenisasi butuh KMS online",
+        "token konsisten per nilai: kesetaraan antar-baris tetap terlihat",
+        "aplikasi yang memvalidasi checksum nilai asli bisa menolak token"
+      ]
+    },
+    "blind-index": {
+      "what": "HMAC-SHA256(normalize(nilai), index_key) di kolom terpisah untuk pencarian kesetaraan",
+      "limits": [
+        "membocorkan kesetaraan nilai",
+        "hanya untuk pencarian persis, bukan awalan/LIKE",
+        "bila index_key bocor, nilai berentropi rendah dapat ditebak (kamus)"
+      ]
+    },
+    "mask": {
+      "what": "VIEW per peran menampilkan sebagian (4 digit akhir, tahun saja, email tersamar)",
+      "limits": [
+        "hanya membatasi tampilan; data tersimpan tetap dilindungi kontrol lain"
+      ]
+    },
+    "view-only": {
+      "what": "tabel dasar tertutup untuk akun aplikasi; kolom hanya terlihat lewat VIEW peran yang diizinkan matriks",
+      "limits": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ]
+    },
+    "drop": {
+      "what": "kolom tidak disimpan lagi; VIEW kompatibilitas menurunkannya dari kolom sumber",
+      "limits": [
+        "fitur yang MENULIS kolom ini harus diubah",
+        "tidak dapat dibatalkan setelah backup lama dimusnahkan"
+      ]
+    }
+  },
+  "columns": [
+    {
+      "table": "member_activities",
+      "column": "id",
+      "field": "id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "member_activities",
+      "column": "member_id",
+      "field": "member_id",
+      "detected_class": "NON_PII",
+      "pii_type": "reference_id",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "member_activities",
+      "column": "title",
+      "field": "title",
+      "detected_class": "NON_PII",
+      "pii_type": "categorical",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "full",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "full",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_activities",
+      "column": "ref_code",
+      "field": "ref_code",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "nik",
+      "controls": [
+        "tokenize"
+      ],
+      "reason": "berisi NIK walau namanya 'ref_code' (jebakan): ditokenisasi dengan vault yang sama, jadi relasi antar-tabel tetap terjaga; tanpa blind index karena kontrak membatasinya untuk nik & email",
+      "limitations": [
+        "detokenisasi butuh KMS online",
+        "token konsisten per nilai: kesetaraan antar-baris tetap terlihat",
+        "aplikasi yang memvalidasi checksum nilai asli bisa menolak token"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_activities",
+      "column": "notes",
+      "field": "notes",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "free_text_pii",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "teks bebas berisi PII (teks bebas: phone tertanam di 34% baris; teks bebas: email tertanam di 18% baris)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": true,
+      "review_note": "teks bebas tidak bisa disamarkan per bagian; pertimbangkan redaksi saat input di aplikasi",
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_activities",
+      "column": "created_at",
+      "field": "created_at",
+      "detected_class": "NON_PII",
+      "pii_type": "event_timestamp",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "member_contacts",
+      "column": "member_id",
+      "field": "member_id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "member_contacts",
+      "column": "address_jakarta",
+      "field": "address_jakarta",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "address",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI_KONTAK: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_contacts",
+      "column": "phone_jakarta",
+      "field": "phone_jakarta",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "phone",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI_KONTAK: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_contacts",
+      "column": "address_region",
+      "field": "address_region",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "address",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI_KONTAK: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_contacts",
+      "column": "phone_region",
+      "field": "phone_region",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "phone",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI_KONTAK: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_contacts",
+      "column": "mobile",
+      "field": "mobile",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "mobile",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI_KONTAK: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "masked",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_contacts",
+      "column": "email",
+      "field": "email",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "email",
+      "controls": [
+        "encrypt-AEAD",
+        "blind-index"
+      ],
+      "reason": "email: AEAD + blind index untuk login/pencarian persis (kontrak)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus",
+        "membocorkan kesetaraan nilai",
+        "hanya untuk pencarian persis, bukan awalan/LIKE",
+        "bila index_key bocor, nilai berentropi rendah dapat ditebak (kamus)"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "masked",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "masked",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_family",
+      "column": "member_id",
+      "field": "member_id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "member_family",
+      "column": "num_children",
+      "field": "num_children",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "family_count",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci; domain nilai kecil, jadi padding panjang ciphertext wajib (agar panjang tidak membocorkan nilai)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_family",
+      "column": "num_dependents",
+      "field": "num_dependents",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "family_count",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci; domain nilai kecil, jadi padding panjang ciphertext wajib (agar panjang tidak membocorkan nilai)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_family",
+      "column": "num_souls",
+      "field": "num_souls",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "family_count",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci; domain nilai kecil, jadi padding panjang ciphertext wajib (agar panjang tidak membocorkan nilai)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "member_id",
+      "field": "member_id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "member_finance",
+      "column": "nik",
+      "field": "nik",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "nik",
+      "controls": [
+        "tokenize",
+        "blind-index"
+      ],
+      "reason": "NIK: tokenisasi (kontrak) + blind index untuk pencarian kesetaraan (kontrak)",
+      "limitations": [
+        "detokenisasi butuh KMS online",
+        "token konsisten per nilai: kesetaraan antar-baris tetap terlihat",
+        "aplikasi yang memvalidasi checksum nilai asli bisa menolak token",
+        "membocorkan kesetaraan nilai",
+        "hanya untuk pencarian persis, bukan awalan/LIKE",
+        "bila index_key bocor, nilai berentropi rendah dapat ditebak (kamus)"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "masked",
+        "sdm": "masked",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "npwp",
+      "field": "npwp",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "npwp",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "SANGAT_TINGGI: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "account_no",
+      "field": "account_no",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "account_no",
+      "controls": [
+        "tokenize"
+      ],
+      "reason": "nomor rekening: tokenisasi format-preserving (kontrak)",
+      "limitations": [
+        "detokenisasi butuh KMS online",
+        "token konsisten per nilai: kesetaraan antar-baris tetap terlihat",
+        "aplikasi yang memvalidasi checksum nilai asli bisa menolak token"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "account_name",
+      "field": "account_name",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "account_name",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "nama rekening: SANGAT TINGGI menurut kontrak",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": true,
+      "review_note": "kolom ini = 20 karakter pertama full_name (PUBLIK); enkripsi tidak menambah kerahasiaan nyata. Usulan: drop dan turunkan dari full_name",
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "bank_name",
+      "field": "bank_name",
+      "detected_class": "INTERNAL",
+      "pii_type": "organisation",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "data internal: hanya peran yang membutuhkan (matriks)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "bank_code",
+      "field": "bank_code",
+      "detected_class": "INTERNAL",
+      "pii_type": "code",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "data internal: hanya peran yang membutuhkan (matriks)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "kppn_name",
+      "field": "kppn_name",
+      "detected_class": "INTERNAL",
+      "pii_type": "organisation",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "data internal: hanya peran yang membutuhkan (matriks)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_finance",
+      "column": "kppn_nip",
+      "field": "kppn_nip",
+      "detected_class": "INTERNAL",
+      "pii_type": "nip",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "data internal: hanya peran yang membutuhkan (matriks)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "full",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_health",
+      "column": "member_id",
+      "field": "member_id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "member_health",
+      "column": "blood_type",
+      "field": "blood_type",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "blood_type",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci; domain nilai kecil, jadi padding panjang ciphertext wajib (agar panjang tidak membocorkan nilai)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "none",
+        "medis": "full",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_health",
+      "column": "allergy_note",
+      "field": "allergy_note",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "health_note",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "none",
+        "medis": "full",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "member_health",
+      "column": "condition_note",
+      "field": "condition_note",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "health_note",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "none",
+        "medis": "full",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "id",
+      "field": "id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "members",
+      "column": "full_name",
+      "field": "full_name",
+      "detected_class": "PUBLIK",
+      "pii_type": "person_name",
+      "controls": [],
+      "reason": "data publik menurut kontrak: tidak dienkripsi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "full",
+        "humas": "full",
+        "keuangan": "full",
+        "sdm": "full",
+        "medis": "full",
+        "admin": "full",
+        "anggota": "full"
+      }
+    },
+    {
+      "table": "members",
+      "column": "display_name",
+      "field": "display_name",
+      "detected_class": "PUBLIK",
+      "pii_type": "person_name",
+      "controls": [
+        "drop"
+      ],
+      "reason": "duplikat kolom lain (identik dengan full_name di 734/734 baris): minimisasi data, tidak menambah informasi",
+      "limitations": [
+        "fitur yang MENULIS kolom ini harus diubah",
+        "tidak dapat dibatalkan setelah backup lama dimusnahkan"
+      ],
+      "needs_human_review": true,
+      "review_note": "pastikan tidak ada kode yang menulis kolom ini; VIEW kompatibilitas tetap menyediakannya untuk dibaca",
+      "visible_to": {
+        "public": "full",
+        "humas": "full",
+        "keuangan": "full",
+        "sdm": "full",
+        "medis": "full",
+        "admin": "full",
+        "anggota": "full"
+      }
+    },
+    {
+      "table": "members",
+      "column": "gender",
+      "field": "gender",
+      "detected_class": "QUASI_ID",
+      "pii_type": "gender",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "kuasi-identifier: dibatasi lewat VIEW per peran (kombinasinya bisa mengidentifikasi orang)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "full",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "full",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "birth_place",
+      "field": "birth_place",
+      "detected_class": "QUASI_ID",
+      "pii_type": "birth_place",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "kuasi-identifier: dibatasi lewat VIEW per peran (kombinasinya bisa mengidentifikasi orang)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "full",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "birth_date",
+      "field": "birth_date",
+      "detected_class": "QUASI_ID",
+      "pii_type": "birth_date",
+      "controls": [
+        "encrypt-AEAD",
+        "mask"
+      ],
+      "reason": "tanggal lahir: AEAD; peran yang tidak butuh tanggal lengkap hanya melihat tahun",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus",
+        "hanya membatasi tampilan; data tersimpan tetap dilindungi kontrol lain"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "masked",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "full",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "job",
+      "field": "job",
+      "detected_class": "QUASI_ID",
+      "pii_type": "job",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "kuasi-identifier: dibatasi lewat VIEW per peran (kombinasinya bisa mengidentifikasi orang)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "full",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "religion",
+      "field": "religion",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "religion",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci; domain nilai kecil, jadi padding panjang ciphertext wajib (agar panjang tidak membocorkan nilai)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "marital_status",
+      "field": "marital_status",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "marital_status",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci; domain nilai kecil, jadi padding panjang ciphertext wajib (agar panjang tidak membocorkan nilai)",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "marriage_date",
+      "field": "marriage_date",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "marriage_date",
+      "controls": [
+        "encrypt-AEAD"
+      ],
+      "reason": "TINGGI keluarga/sosial/kesehatan: harus tak terbaca dari dump tanpa kunci",
+      "limitations": [
+        "kolom tidak bisa dicari/diurutkan di database",
+        "panjang ciphertext bisa membocorkan panjang nilai (diberi padding 16 byte)",
+        "tidak melindungi bila aplikasi dan akses KMS dikuasai sekaligus"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "members",
+      "column": "room_code",
+      "field": "room_code",
+      "detected_class": "PUBLIK",
+      "pii_type": "room_code",
+      "controls": [],
+      "reason": "data publik menurut kontrak: tidak dienkripsi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "full",
+        "humas": "full",
+        "keuangan": "full",
+        "sdm": "full",
+        "medis": "full",
+        "admin": "full",
+        "anggota": "full"
+      }
+    },
+    {
+      "table": "members",
+      "column": "created_at",
+      "field": "created_at",
+      "detected_class": "NON_PII",
+      "pii_type": "event_timestamp",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "users",
+      "column": "id",
+      "field": "id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "users",
+      "column": "username",
+      "field": "username",
+      "detected_class": "INTERNAL",
+      "pii_type": "username",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "data internal: hanya peran yang membutuhkan (matriks)",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "full",
+        "medis": "none",
+        "admin": "full",
+        "anggota": "self"
+      }
+    },
+    {
+      "table": "users",
+      "column": "password_hash",
+      "field": "password_hash",
+      "detected_class": "KREDENSIAL",
+      "pii_type": "password_hash",
+      "controls": [
+        "view-only"
+      ],
+      "reason": "hash sandi: tidak pernah dikirim ke peran mana pun",
+      "limitations": [
+        "nilai tetap plaintext di disk, backup, dan dump: hanya kontrol akses"
+      ],
+      "needs_human_review": true,
+      "review_note": "periksa algoritma hash; MD5/SHA-1 tanpa salt harus diganti argon2id/bcrypt di kode aplikasi (patch)",
+      "visible_to": {
+        "public": "none",
+        "humas": "none",
+        "keuangan": "none",
+        "sdm": "none",
+        "medis": "none",
+        "admin": "none",
+        "anggota": "none"
+      }
+    },
+    {
+      "table": "users",
+      "column": "role",
+      "field": "role",
+      "detected_class": "NON_PII",
+      "pii_type": "role",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    },
+    {
+      "table": "users",
+      "column": "member_id",
+      "field": "member_id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "controls": [],
+      "reason": "bukan data pribadi",
+      "limitations": [],
+      "needs_human_review": false,
+      "review_note": null,
+      "visible_to": null
+    }
+  ],
+  "by_control": {
+    "encrypt-AEAD": [
+      "member_activities.notes",
+      "member_contacts.address_jakarta",
+      "member_contacts.phone_jakarta",
+      "member_contacts.address_region",
+      "member_contacts.phone_region",
+      "member_contacts.mobile",
+      "member_contacts.email",
+      "member_family.num_children",
+      "member_family.num_dependents",
+      "member_family.num_souls",
+      "member_finance.npwp",
+      "member_finance.account_name",
+      "member_health.blood_type",
+      "member_health.allergy_note",
+      "member_health.condition_note",
+      "members.birth_date",
+      "members.religion",
+      "members.marital_status",
+      "members.marriage_date"
+    ],
+    "tokenize": [
+      "member_activities.ref_code",
+      "member_finance.nik",
+      "member_finance.account_no"
+    ],
+    "blind-index": [
+      "member_contacts.email",
+      "member_finance.nik"
+    ],
+    "mask": [
+      "members.birth_date"
+    ],
+    "view-only": [
+      "member_finance.bank_name",
+      "member_finance.bank_code",
+      "member_finance.kppn_name",
+      "member_finance.kppn_nip",
+      "members.gender",
+      "members.birth_place",
+      "members.job",
+      "users.username",
+      "users.password_hash"
+    ],
+    "drop": [
+      "members.display_name"
+    ]
+  },
+  "role_views": {
+    "public": [
+      "members.display_name:full",
+      "members.full_name:full",
+      "members.room_code:full"
+    ],
+    "humas": [
+      "member_activities.title:full",
+      "member_contacts.email:masked",
+      "members.birth_date:masked",
+      "members.birth_place:full",
+      "members.display_name:full",
+      "members.full_name:full",
+      "members.gender:full",
+      "members.job:full",
+      "members.room_code:full"
+    ],
+    "keuangan": [
+      "member_family.num_dependents:full",
+      "member_finance.account_name:full",
+      "member_finance.account_no:full",
+      "member_finance.bank_code:full",
+      "member_finance.bank_name:full",
+      "member_finance.kppn_name:full",
+      "member_finance.kppn_nip:full",
+      "member_finance.nik:masked",
+      "member_finance.npwp:full",
+      "members.display_name:full",
+      "members.full_name:full",
+      "members.room_code:full"
+    ],
+    "sdm": [
+      "member_activities.notes:full",
+      "member_activities.title:full",
+      "member_contacts.address_jakarta:full",
+      "member_contacts.address_region:full",
+      "member_contacts.email:full",
+      "member_contacts.mobile:full",
+      "member_contacts.phone_jakarta:full",
+      "member_contacts.phone_region:full",
+      "member_family.num_children:full",
+      "member_family.num_dependents:full",
+      "member_family.num_souls:full",
+      "member_finance.nik:masked",
+      "members.birth_date:full",
+      "members.birth_place:full",
+      "members.display_name:full",
+      "members.full_name:full",
+      "members.gender:full",
+      "members.job:full",
+      "members.marital_status:full",
+      "members.marriage_date:full",
+      "members.room_code:full",
+      "users.username:full"
+    ],
+    "medis": [
+      "member_contacts.mobile:masked",
+      "member_health.allergy_note:full",
+      "member_health.blood_type:full",
+      "member_health.condition_note:full",
+      "members.birth_date:full",
+      "members.display_name:full",
+      "members.full_name:full",
+      "members.gender:full",
+      "members.room_code:full"
+    ],
+    "admin": [
+      "member_activities.title:full",
+      "member_contacts.email:masked",
+      "members.display_name:full",
+      "members.full_name:full",
+      "members.room_code:full",
+      "users.username:full"
+    ],
+    "anggota": [
+      "member_activities.notes:self",
+      "member_activities.ref_code:self",
+      "member_activities.title:self",
+      "member_contacts.address_jakarta:self",
+      "member_contacts.address_region:self",
+      "member_contacts.email:self",
+      "member_contacts.mobile:self",
+      "member_contacts.phone_jakarta:self",
+      "member_contacts.phone_region:self",
+      "member_family.num_children:self",
+      "member_family.num_dependents:self",
+      "member_family.num_souls:self",
+      "member_finance.account_name:self",
+      "member_finance.account_no:self",
+      "member_finance.bank_code:self",
+      "member_finance.bank_name:self",
+      "member_finance.kppn_name:self",
+      "member_finance.kppn_nip:self",
+      "member_finance.nik:self",
+      "member_finance.npwp:self",
+      "member_health.allergy_note:self",
+      "member_health.blood_type:self",
+      "member_health.condition_note:self",
+      "members.birth_date:self",
+      "members.birth_place:self",
+      "members.display_name:full",
+      "members.full_name:full",
+      "members.gender:self",
+      "members.job:self",
+      "members.marital_status:self",
+      "members.marriage_date:self",
+      "members.religion:self",
+      "members.room_code:full",
+      "users.username:self"
+    ]
+  },
+  "needs_human_review": [
+    "member_activities.notes: teks bebas tidak bisa disamarkan per bagian; pertimbangkan redaksi saat input di aplikasi",
+    "member_finance.account_name: kolom ini = 20 karakter pertama full_name (PUBLIK); enkripsi tidak menambah kerahasiaan nyata. Usulan: drop dan turunkan dari full_name",
+    "members.display_name: pastikan tidak ada kode yang menulis kolom ini; VIEW kompatibilitas tetap menyediakannya untuk dibaca",
+    "users.password_hash: periksa algoritma hash; MD5/SHA-1 tanpa salt harus diganti argon2id/bcrypt di kode aplikasi (patch)"
+  ]
+}

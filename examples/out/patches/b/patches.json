@@ -1,0 +1,8 @@
+{
+  "target": "b",
+  "needs_human_review": true,
+  "files": [
+    "01-login-least-privilege.md"
+  ],
+  "code_findings": []
+}

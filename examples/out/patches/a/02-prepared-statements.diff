@@ -1,0 +1,27 @@
+--- a/api/member.php
++++ b/api/member.php
+@@ -3,7 +3,10 @@
+ require __DIR__ . '/db.php';
+ 
+ $id = $_GET['id'] ?? '0';
+-$res = mysqli_query($db, "SELECT * FROM anggota WHERE id = " . $id);
++$st = mysqli_prepare($db, "SELECT * FROM anggota WHERE id = ?");
++mysqli_stmt_bind_param($st, "i", $id);
++mysqli_stmt_execute($st);
++$res = mysqli_stmt_get_result($st);
+ $row = mysqli_fetch_assoc($res);
+ if (!$row) {
+     http_response_code(404);
+--- a/api/search.php
++++ b/api/search.php
+@@ -5,5 +5,9 @@
+ $filters = isset($_COOKIE['filters']) ? unserialize(base64_decode($_COOKIE['filters'])) : [];
+ $q = $_GET['q'] ?? '';
+ $limit = isset($filters['limit']) ? (int) $filters['limit'] : 50;
+-$res = mysqli_query($db, "SELECT id, nama, ruangan FROM anggota WHERE nama LIKE '" . $q . "%' ORDER BY id LIMIT " . $limit);
++$p1 = $q . '%';
++$st = mysqli_prepare($db, "SELECT id, nama, ruangan FROM anggota WHERE nama LIKE ? ORDER BY id LIMIT ?");
++mysqli_stmt_bind_param($st, "si", $p1, $limit);
++mysqli_stmt_execute($st);
++$res = mysqli_stmt_get_result($st);
+ json_out(['data' => mysqli_fetch_all($res, MYSQLI_ASSOC)]);

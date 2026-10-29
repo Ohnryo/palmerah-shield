@@ -1,0 +1,105 @@
+{
+  "note": "run beku pertama yang sah; run sebelumnya tidak membaca kolom (pg_dump --inserts tanpa daftar kolom), diperbaiki di pembaca dump saja",
+  "result": {
+    "with_column_names": {
+      "tp": 8,
+      "fp": 0,
+      "fn": 5,
+      "precision": 1.0,
+      "recall": 0.615,
+      "f1": 0.762,
+      "misses": [
+        {
+          "table": "pegawai",
+          "column": "gaji_pokok",
+          "tier": 3,
+          "detected": "INTERNAL",
+          "pii_type": "username",
+          "ok": false
+        },
+        {
+          "table": "pegawai",
+          "column": "no_rek_bank",
+          "tier": 3,
+          "detected": "NON_PII",
+          "pii_type": "unknown",
+          "ok": false
+        },
+        {
+          "table": "pegawai",
+          "column": "tgl_lhr",
+          "tier": 2,
+          "detected": "QUASI_ID",
+          "pii_type": "birth_date",
+          "ok": false
+        },
+        {
+          "table": "rekam_medis",
+          "column": "faskes",
+          "tier": 3,
+          "detected": "NON_PII",
+          "pii_type": "categorical",
+          "ok": false
+        },
+        {
+          "table": "rekam_medis",
+          "column": "tgl_periksa",
+          "tier": 3,
+          "detected": "NON_PII",
+          "pii_type": "event_timestamp",
+          "ok": false
+        }
+      ]
+    },
+    "content_only": {
+      "tp": 8,
+      "fp": 0,
+      "fn": 5,
+      "precision": 1.0,
+      "recall": 0.615,
+      "f1": 0.762,
+      "misses": [
+        {
+          "table": "pegawai",
+          "column": "gaji_pokok",
+          "tier": 3,
+          "detected": "INTERNAL",
+          "pii_type": "username",
+          "ok": false
+        },
+        {
+          "table": "pegawai",
+          "column": "no_rek_bank",
+          "tier": 3,
+          "detected": "NON_PII",
+          "pii_type": "unknown",
+          "ok": false
+        },
+        {
+          "table": "pegawai",
+          "column": "tgl_lhr",
+          "tier": 2,
+          "detected": "QUASI_ID",
+          "pii_type": "birth_date",
+          "ok": false
+        },
+        {
+          "table": "rekam_medis",
+          "column": "faskes",
+          "tier": 3,
+          "detected": "NON_PII",
+          "pii_type": "categorical",
+          "ok": false
+        },
+        {
+          "table": "rekam_medis",
+          "column": "tgl_periksa",
+          "tier": 3,
+          "detected": "NON_PII",
+          "pii_type": "event_timestamp",
+          "ok": false
+        }
+      ]
+    }
+  }
+}

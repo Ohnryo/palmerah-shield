@@ -1,0 +1,41 @@
+{
+  "note": "BUKAN held-out: aturan disetel sesudah melihat hasil beku",
+  "result": {
+    "with_column_names": {
+      "tp": 12,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.923,
+      "f1": 0.96,
+      "misses": [
+        {
+          "table": "pegawai",
+          "column": "tgl_lhr",
+          "tier": 2,
+          "detected": "QUASI_ID",
+          "pii_type": "birth_date",
+          "ok": false
+        }
+      ]
+    },
+    "content_only": {
+      "tp": 12,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.923,
+      "f1": 0.96,
+      "misses": [
+        {
+          "table": "pegawai",
+          "column": "tgl_lhr",
+          "tier": 2,
+          "detected": "QUASI_ID",
+          "pii_type": "birth_date",
+          "ok": false
+        }
+      ]
+    }
+  }
+}

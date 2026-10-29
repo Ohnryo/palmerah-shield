@@ -1,0 +1,18 @@
+# secrets, keys, local databases (never committed)
+.env
+.local/
+*.key
+*.pem
+*.crt
+
+# tool output (example outputs are committed under examples/out/)
+/out/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/

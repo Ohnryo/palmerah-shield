@@ -1,0 +1,367 @@
+{
+  "_comment": "Matriks akses peran x field (kontrak Palmerah). Dipakai Shield untuk VIEW per peran dan filter respons. Diubah oleh tim; Shield tidak menimpa berkas yang sudah ada.",
+  "version": 1,
+  "levels": {
+    "full": "nilai utuh",
+    "masked": "sebagian disamarkan",
+    "none": "tidak pernah dikirim",
+    "self": "utuh hanya untuk record milik sendiri"
+  },
+  "roles": {
+    "public": "pengunjung tanpa login: direktori anggota",
+    "humas": "hubungan masyarakat: profil publik dan kegiatan",
+    "keuangan": "pembayaran: rekening, NPWP, KPPN",
+    "sdm": "kepegawaian: identitas, kontak, keluarga",
+    "medis": "layanan kesehatan: data kesehatan dan kontak darurat",
+    "admin": "administrasi sistem: akun, bukan pemilik data pribadi",
+    "anggota": "anggota Dewan: hanya data dirinya sendiri"
+  },
+  "website_a_columns": {
+    "nama": "full_name",
+    "nama_lengkap": "full_name",
+    "nama_tanpa_gelar": "full_name",
+    "jenis_kelamin": "gender",
+    "tempat_lahir": "birth_place",
+    "tanggal_lahir": "birth_date",
+    "tanggal_pernikahan": "marriage_date",
+    "no_ktp": "nik",
+    "pekerjaan_terakhir": "job",
+    "alamat_jakarta": "address_jakarta",
+    "telpon_jakarta": "phone_jakarta",
+    "alamat_daerah": "address_region",
+    "telpon_daerah": "phone_region",
+    "handphone": "mobile",
+    "email": "email",
+    "ruangan": "room_code",
+    "status_kawin": "marital_status",
+    "jumlah_anak": "num_children",
+    "jumlah_tanggungan": "num_dependents",
+    "jumlah_jiwa": "num_souls",
+    "rekening": "account_no",
+    "nama_rekening": "account_name",
+    "npwp": "npwp",
+    "nama_kppn": "kppn_name",
+    "nip_kppn": "kppn_nip",
+    "nama_bank": "bank_name",
+    "kode_bank": "bank_code",
+    "pengguna": "username",
+    "agama": "religion"
+  },
+  "fields": {
+    "full_name": {
+      "public": "full",
+      "humas": "full",
+      "keuangan": "full",
+      "sdm": "full",
+      "medis": "full",
+      "admin": "full",
+      "anggota": "full"
+    },
+    "display_name": {
+      "public": "full",
+      "humas": "full",
+      "keuangan": "full",
+      "sdm": "full",
+      "medis": "full",
+      "admin": "full",
+      "anggota": "full"
+    },
+    "room_code": {
+      "public": "full",
+      "humas": "full",
+      "keuangan": "full",
+      "sdm": "full",
+      "medis": "full",
+      "admin": "full",
+      "anggota": "full"
+    },
+    "nik": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "masked",
+      "sdm": "masked",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "npwp": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "account_no": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "account_name": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "address_jakarta": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "address_region": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "phone_jakarta": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "phone_region": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "mobile": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "masked",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "email": {
+      "public": "none",
+      "humas": "masked",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "masked",
+      "anggota": "self"
+    },
+    "marital_status": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "marriage_date": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "num_children": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "num_dependents": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "num_souls": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "religion": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "blood_type": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "none",
+      "medis": "full",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "allergy_note": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "none",
+      "medis": "full",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "condition_note": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "none",
+      "medis": "full",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "birth_date": {
+      "public": "none",
+      "humas": "masked",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "full",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "birth_place": {
+      "public": "none",
+      "humas": "full",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "gender": {
+      "public": "none",
+      "humas": "full",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "full",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "job": {
+      "public": "none",
+      "humas": "full",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "kppn_nip": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "kppn_name": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "bank_name": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "bank_code": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "full",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "username": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "full",
+      "anggota": "self"
+    },
+    "title": {
+      "public": "none",
+      "humas": "full",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "full",
+      "anggota": "self"
+    },
+    "ref_code": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "notes": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "full",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "self"
+    },
+    "password_hash": {
+      "public": "none",
+      "humas": "none",
+      "keuangan": "none",
+      "sdm": "none",
+      "medis": "none",
+      "admin": "none",
+      "anggota": "none"
+    }
+  }
+}

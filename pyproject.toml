@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "palmerah-shield"
+version = "0.1.0"
+description = "Palmerah Shield: turns the vulnerable demo websites into protected ones (scan, plan, apply, rollback, benchmark)"
+requires-python = ">=3.11"
+dependencies = [
+  "typer>=0.12",
+  "cryptography>=43",
+  "pymysql>=1.1",
+  "psycopg[binary]>=3.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+shield = "palmerah_shield.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: needs the local fixture databases (python -m palmerah_shield dev start)"]

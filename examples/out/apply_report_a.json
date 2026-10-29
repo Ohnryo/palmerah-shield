@@ -1,0 +1,180 @@
+{
+  "target": "a",
+  "database": "web_legacy",
+  "applied_at": "2026-10-29T16:17:11+00:00",
+  "plan": "plan_a.json",
+  "mode": "hardened",
+  "backup": {
+    "file": "web_legacy-20261029-231700.sql.enc",
+    "key_id": "9af66ccf18b2"
+  },
+  "steps": [
+    {
+      "step": "tokenize",
+      "column": "anggota.no_ktp",
+      "domain": "nik",
+      "values": 734
+    },
+    {
+      "step": "tokenize",
+      "column": "anggota.rekening",
+      "domain": "account_no",
+      "values": 734
+    },
+    {
+      "step": "migrate",
+      "table": "anggota",
+      "rows": 734,
+      "encrypted_columns": [
+        "tanggal_lahir",
+        "tanggal_pernikahan",
+        "alamat_jakarta",
+        "telpon_jakarta",
+        "alamat_daerah",
+        "telpon_daerah",
+        "handphone",
+        "email",
+        "status_kawin",
+        "jumlah_anak",
+        "jumlah_tanggungan",
+        "jumlah_jiwa",
+        "nama_rekening",
+        "npwp",
+        "agama"
+      ],
+      "values_verified": 10643,
+      "new_columns": [
+        "tanggal_lahir_mask",
+        "tanggal_lahir_enc",
+        "tanggal_pernikahan_enc",
+        "no_ktp_bidx",
+        "no_ktp_mask",
+        "alamat_jakarta_enc",
+        "telpon_jakarta_enc",
+        "alamat_daerah_enc",
+        "telpon_daerah_enc",
+        "handphone_mask",
+        "handphone_enc",
+        "email_bidx",
+        "email_mask",
+        "email_enc",
+        "status_kawin_enc",
+        "jumlah_anak_enc",
+        "jumlah_tanggungan_enc",
+        "jumlah_jiwa_enc",
+        "nama_rekening_enc",
+        "npwp_enc",
+        "agama_enc"
+      ]
+    },
+    {
+      "step": "views_and_roles",
+      "views": 7,
+      "roles": [
+        "palmerah_a_r_public",
+        "palmerah_a_r_humas",
+        "palmerah_a_r_keuangan",
+        "palmerah_a_r_sdm",
+        "palmerah_a_r_medis",
+        "palmerah_a_r_admin",
+        "palmerah_a_r_anggota"
+      ],
+      "app_login": "palmerah_a_app"
+    }
+  ],
+  "controls": [
+    {
+      "control": "Enkripsi kolom AES-256-GCM, nonce acak, AAD tabel:kolom:id, padding 16 B",
+      "status": "[TESTED]",
+      "evidence": "10643 nilai terdekripsi kembali identik sebelum plaintext dihapus"
+    },
+    {
+      "control": "Envelope DEK per kolom dibungkus KEK di KMS terpisah (:8200)",
+      "status": "[TESTED]",
+      "evidence": "tabel shield_keys hanya berisi DEK terbungkus; KEK di .local/kms (proses terpisah); unwrap tercatat di audit KMS"
+    },
+    {
+      "control": "Tokenisasi format-preserving nik & account_no (vault KMS)",
+      "status": "[TESTED]",
+      "evidence": "anggota.no_ktp (734 nilai); anggota.rekening (734 nilai)"
+    },
+    {
+      "control": "Blind index HMAC-SHA256 untuk nik & email",
+      "status": "[IMPLEMENTED]",
+      "evidence": "kolom *_bidx terisi; uji pencarian di tests/test_apply_live.py"
+    },
+    {
+      "control": "Dump tanpa kunci tidak membocorkan nilai asli",
+      "status": "[TESTED]",
+      "evidence": "0 dari 300 nilai sampel ditemukan di dump nyata"
+    },
+    {
+      "control": "Role DB per peran + VIEW per peran; login aplikasi tanpa akses tabel dasar (wajib SET ROLE)",
+      "status": "[TESTED]",
+      "evidence": "login palmerah_a_app ditolak pada tabel dasar: True; view public untuk NIK: [None, None, None]"
+    },
+    {
+      "control": "Backup terenkripsi sebelum perubahan + rollback otomatis bila gagal",
+      "status": "[IMPLEMENTED]",
+      "evidence": "web_legacy-20261029-231700.sql.enc"
+    },
+    {
+      "control": "Aplikasi berhenti memakai root/superuser",
+      "status": "[IMPLEMENTED]",
+      "evidence": "kredensial palmerah_a_app di .local/app-credentials-a.json; web perlu diarahkan ke akun ini (needs human review)"
+    },
+    {
+      "control": "Minimisasi kolom duplikat (drop)",
+      "status": "[PLANNED]",
+      "evidence": "menunggu persetujuan manusia: anggota.nama_lengkap, anggota.nama_tanpa_gelar"
+    },
+    {
+      "control": "Patch kode aplikasi (login least-privilege, prepared statement, hash sandi)",
+      "status": "[IMPLEMENTED]",
+      "evidence": "out/patches/a/ (needs human review; diff prepared statement dibuat bila --app-src diberikan ke `shield patch`)"
+    },
+    {
+      "control": "Reverse proxy TLS + header + filter respons per peran + dekripsi terkendali",
+      "status": "[PLANNED]",
+      "evidence": "tahap S4"
+    },
+    {
+      "control": "Audit akses/dekripsi PII + alarm baca massal",
+      "status": "[IMPLEMENTED]",
+      "evidence": "audit KMS (unwrap, detokenize, alarm >5000 nilai/menit); audit proxy di S4"
+    }
+  ],
+  "verification": {
+    "dump_without_keys": {
+      "sample_values": 300,
+      "found_in_dump": 0,
+      "columns_leaking": [],
+      "residual_derived": {
+        "anggota.nama_rekening": "25/25 nilai tetap terlihat: turunan full_name yang publik"
+      }
+    },
+    "app_login_denied_on_base_table": true,
+    "public_view_nik_values": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "sdm_view_nik_example": "**********5443"
+  },
+  "needs_human_review": [
+    "anggota.nama_lengkap: pastikan tidak ada kode yang menulis kolom ini; VIEW kompatibilitas tetap menyediakannya untuk dibaca",
+    "anggota.nama_tanpa_gelar: pastikan tidak ada kode yang menulis kolom ini; VIEW kompatibilitas tetap menyediakannya untuk dibaca",
+    "anggota.nama_rekening: kolom ini = 20 karakter pertama full_name (PUBLIK); enkripsi tidak menambah kerahasiaan nyata. Usulan: drop dan turunkan dari full_name",
+    "arahkan website ke login palmerah_a_app (bukan root/postgres) dan jalankan SET ROLE sesuai peran pengguna",
+    "kolom terenkripsi kini hanya-baca lewat VIEW: fitur yang MENULIS kolom itu harus lewat layanan Shield (patch)"
+  ],
+  "patches": {
+    "dir": "out/patches/a/",
+    "files": [
+      "01-login-least-privilege.md"
+    ],
+    "status": "needs human review"
+  }
+}

@@ -1,0 +1,475 @@
+{
+  "target": "a",
+  "source": "mysql://127.0.0.1:3306/web_legacy",
+  "generated_at": "2026-10-29T16:17:00+00:00",
+  "rows_sampled": {
+    "anggota": 734
+  },
+  "findings": [
+    {
+      "table": "anggota",
+      "column": "id",
+      "detected_class": "NON_PII",
+      "pii_type": "surrogate_key",
+      "confidence": 0.9,
+      "why": [
+        "bilangan bulat unik dan berurutan (734 nilai)"
+      ],
+      "sample_masked": "*",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "nama",
+      "detected_class": "PUBLIK",
+      "pii_type": "person_name",
+      "confidence": 0.7,
+      "why": [
+        "teks bernama orang, unik 100% (nama pejabat publik menurut kontrak)"
+      ],
+      "sample_masked": " ,***(24 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "nama_lengkap",
+      "detected_class": "PUBLIK",
+      "pii_type": "person_name",
+      "confidence": 0.7,
+      "why": [
+        "teks bernama orang, unik 100% (nama pejabat publik menurut kontrak)"
+      ],
+      "sample_masked": " ,***(24 karakter)",
+      "relations": [
+        "identik dengan nama di 734/734 baris"
+      ]
+    },
+    {
+      "table": "anggota",
+      "column": "nama_tanpa_gelar",
+      "detected_class": "PUBLIK",
+      "pii_type": "person_name",
+      "confidence": 0.7,
+      "why": [
+        "teks bernama orang, unik 100% (nama pejabat publik menurut kontrak)"
+      ],
+      "sample_masked": " ,***(24 karakter)",
+      "relations": [
+        "identik dengan nama di 734/734 baris"
+      ]
+    },
+    {
+      "table": "anggota",
+      "column": "jenis_kelamin",
+      "detected_class": "QUASI_ID",
+      "pii_type": "gender",
+      "confidence": 0.9,
+      "why": [
+        "domain ['l', 'p']: jenis kelamin"
+      ],
+      "sample_masked": "*",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "tempat_lahir",
+      "detected_class": "QUASI_ID",
+      "pii_type": "birth_place",
+      "confidence": 0.85,
+      "why": [
+        "nama kota dari kamus: tempat lahir/asal"
+      ],
+      "sample_masked": "Yo***(10 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "tanggal_lahir",
+      "detected_class": "QUASI_ID",
+      "pii_type": "birth_date",
+      "confidence": 0.85,
+      "why": [
+        "tanggal lengkap rentang 45 tahun, semua ≥17 tahun lalu: tanggal lahir",
+        "kandidat lain: username (0.70)"
+      ],
+      "sample_masked": "19***(10 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "tanggal_pernikahan",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "marriage_date",
+      "confidence": 0.7,
+      "why": [
+        "tanggal, 50% kosong: peristiwa keluarga yang tidak dimiliki semua orang",
+        "kandidat lain: username (0.70)"
+      ],
+      "sample_masked": "19***(10 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "no_ktp",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "nik",
+      "confidence": 0.97,
+      "why": [
+        "100% digit, panjang tetap 14, 734 nilai berbeda (unik 100%)",
+        "entropi 2.82 bit/karakter",
+        "pola panjang 14 digit = format nik",
+        "nama kolom 'no_ktp' mendukung"
+      ],
+      "sample_masked": "**********5443",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "pekerjaan_terakhir",
+      "detected_class": "QUASI_ID",
+      "pii_type": "job",
+      "confidence": 0.85,
+      "why": [
+        "nilai dari kamus pekerjaan"
+      ],
+      "sample_masked": "Pe***(9 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "alamat_jakarta",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "address",
+      "confidence": 0.9,
+      "why": [
+        "100% nilai berpola alamat (Jl. ... No.)"
+      ],
+      "sample_masked": "Jl***(27 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "telpon_jakarta",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "phone",
+      "confidence": 0.92,
+      "why": [
+        "100% nilai berbentuk nomor telepon Indonesia"
+      ],
+      "sample_masked": "*******0504",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "alamat_daerah",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "address",
+      "confidence": 0.9,
+      "why": [
+        "100% nilai berpola alamat (Jl. ... No.)"
+      ],
+      "sample_masked": "Jl***(30 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "telpon_daerah",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "phone",
+      "confidence": 0.8,
+      "why": [
+        "89% nilai berbentuk nomor telepon Indonesia",
+        "sisanya tetap berbentuk nomor telepon (10-13 digit berawalan 0) dengan kode area tidak valid: data sintetis"
+      ],
+      "sample_masked": "******2761",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "handphone",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "mobile",
+      "confidence": 0.92,
+      "why": [
+        "100% nilai berbentuk nomor telepon Indonesia"
+      ],
+      "sample_masked": "******6485",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "email",
+      "detected_class": "TINGGI_KONTAK",
+      "pii_type": "email",
+      "confidence": 0.95,
+      "why": [
+        "100% nilai berformat email"
+      ],
+      "sample_masked": ".***@example.com",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "ruangan",
+      "detected_class": "PUBLIK",
+      "pii_type": "room_code",
+      "confidence": 0.8,
+      "why": [
+        "kode ruangan berpola HURUF-ANGKA"
+      ],
+      "sample_masked": "DU***(9 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "status_kawin",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "marital_status",
+      "confidence": 0.85,
+      "why": [
+        "kode status kawin ['k', 'tk']"
+      ],
+      "sample_masked": "**",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "jumlah_anak",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "family_count",
+      "confidence": 0.65,
+      "why": [
+        "bilangan kecil 0..3 dengan 4 nilai: jumlah anggota keluarga/tanggungan",
+        "nama kolom 'jumlah_anak' mendukung"
+      ],
+      "sample_masked": "*",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "jumlah_tanggungan",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "family_count",
+      "confidence": 0.65,
+      "why": [
+        "bilangan kecil 0..4 dengan 5 nilai: jumlah anggota keluarga/tanggungan",
+        "nama kolom 'jumlah_tanggungan' mendukung"
+      ],
+      "sample_masked": "*",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "jumlah_jiwa",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "family_count",
+      "confidence": 0.65,
+      "why": [
+        "bilangan kecil 0..5 dengan 5 nilai: jumlah anggota keluarga/tanggungan",
+        "nama kolom 'jumlah_jiwa' mendukung"
+      ],
+      "sample_masked": "*",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "rekening",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "account_no",
+      "confidence": 0.97,
+      "why": [
+        "100% digit, panjang tetap 16, 734 nilai berbeda (unik 100%)",
+        "entropi 2.59 bit/karakter",
+        "pola panjang 16 digit = format account_no",
+        "nama kolom 'rekening' mendukung"
+      ],
+      "sample_masked": "************7607",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "nama_rekening",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "account_name",
+      "confidence": 0.88,
+      "why": [
+        "salinan 20 karakter pertama anggota.nama: nama pemilik rekening"
+      ],
+      "sample_masked": " ,***(20 karakter)",
+      "relations": [
+        "salinan 20 karakter pertama anggota.nama: nama pemilik rekening"
+      ]
+    },
+    {
+      "table": "anggota",
+      "column": "npwp",
+      "detected_class": "SANGAT_TINGGI",
+      "pii_type": "npwp",
+      "confidence": 0.97,
+      "why": [
+        "100% digit, panjang tetap 15, 734 nilai berbeda (unik 100%)",
+        "entropi 2.71 bit/karakter",
+        "pola panjang 15 digit = format npwp",
+        "nama kolom 'npwp' mendukung"
+      ],
+      "sample_masked": "***********1154",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "nama_kppn",
+      "detected_class": "INTERNAL",
+      "pii_type": "organisation",
+      "confidence": 0.85,
+      "why": [
+        "nama institusi (KPPN/Bank/...)"
+      ],
+      "sample_masked": "KP***(13 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "nip_kppn",
+      "detected_class": "INTERNAL",
+      "pii_type": "nip",
+      "confidence": 0.97,
+      "why": [
+        "100% digit, panjang tetap 18, 734 nilai berbeda (unik 100%)",
+        "entropi 2.42 bit/karakter",
+        "pola panjang 18 digit = format nip",
+        "nama kolom 'nip_kppn' mendukung"
+      ],
+      "sample_masked": "**************5889",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "nama_bank",
+      "detected_class": "INTERNAL",
+      "pii_type": "organisation",
+      "confidence": 0.85,
+      "why": [
+        "nama institusi (KPPN/Bank/...)"
+      ],
+      "sample_masked": "Ba***(8 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "kode_bank",
+      "detected_class": "INTERNAL",
+      "pii_type": "code",
+      "confidence": 0.7,
+      "why": [
+        "kode numerik pendek (3 digit, 532 nilai)"
+      ],
+      "sample_masked": "***",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "pengguna",
+      "detected_class": "INTERNAL",
+      "pii_type": "username",
+      "confidence": 0.7,
+      "why": [
+        "pengenal akun: huruf kecil tanpa spasi, unik"
+      ],
+      "sample_masked": "du***(31 karakter)",
+      "relations": []
+    },
+    {
+      "table": "anggota",
+      "column": "agama",
+      "detected_class": "TINGGI_SOSIAL",
+      "pii_type": "religion",
+      "confidence": 0.95,
+      "why": [
+        "nilai dari kamus agama (data spesifik UU PDP)"
+      ],
+      "sample_masked": "Bu***(6 karakter)",
+      "relations": []
+    }
+  ],
+  "metrics": {
+    "reference": "website A (kontrak)",
+    "with_column_names": {
+      "columns_scored": 30,
+      "protect": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "class_accuracy": 1.0,
+      "confusion": {
+        "SANGAT_TINGGI": {
+          "SANGAT_TINGGI": 4
+        },
+        "TINGGI_KONTAK": {
+          "TINGGI_KONTAK": 6
+        },
+        "TINGGI_SOSIAL": {
+          "TINGGI_SOSIAL": 6
+        },
+        "QUASI_ID": {
+          "QUASI_ID": 4
+        },
+        "INTERNAL": {
+          "INTERNAL": 5
+        },
+        "PUBLIK": {
+          "PUBLIK": 4
+        },
+        "NON_PII": {
+          "NON_PII": 1
+        }
+      },
+      "mismatches": [],
+      "traps_caught": {}
+    },
+    "content_only": {
+      "columns_scored": 30,
+      "protect": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "class_accuracy": 1.0,
+      "confusion": {
+        "SANGAT_TINGGI": {
+          "SANGAT_TINGGI": 4
+        },
+        "TINGGI_KONTAK": {
+          "TINGGI_KONTAK": 6
+        },
+        "TINGGI_SOSIAL": {
+          "TINGGI_SOSIAL": 6
+        },
+        "QUASI_ID": {
+          "QUASI_ID": 4
+        },
+        "INTERNAL": {
+          "INTERNAL": 5
+        },
+        "PUBLIK": {
+          "PUBLIK": 4
+        },
+        "NON_PII": {
+          "NON_PII": 1
+        }
+      },
+      "mismatches": [],
+      "traps_caught": {}
+    }
+  },
+  "notes": [
+    "room_code tercantum di INTERNAL dan PUBLIK pada kontrak; acuan memakai PUBLIK (docs/ASUMSI.md A6)",
+    "content_only = nama kolom diabaikan seluruhnya; membuktikan deteksi berbasis isi"
+  ]
+}

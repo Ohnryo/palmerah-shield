@@ -1,0 +1,43 @@
+{
+  "target": "a",
+  "needs_human_review": true,
+  "files": [
+    "01-login-least-privilege.md",
+    "02-prepared-statements.diff"
+  ],
+  "code_findings": [
+    {
+      "file": "api/login.php",
+      "line": 8,
+      "issue": "hash sandi md5/sha1",
+      "fix": "password_hash()/password_verify() (argon2id/bcrypt) + migrasi hash saat login berikutnya",
+      "auto_diff": false
+    },
+    {
+      "file": "api/login.php",
+      "line": 8,
+      "issue": "SQL dirangkai dari variabel lalu dijalankan di baris lain (SQL injection)",
+      "fix": "prepared statement (perlu ditulis manual: query dan eksekusinya terpisah)",
+      "auto_diff": false
+    },
+    {
+      "file": "api/member.php",
+      "line": 6,
+      "issue": "SQL dirangkai dari variabel (SQL injection)",
+      "fix": "prepared statement",
+      "auto_diff": true
+    },
+    {
+      "file": "api/search.php",
+      "line": 8,
+      "issue": "SQL dirangkai dari variabel (SQL injection)",
+      "fix": "prepared statement",
+      "auto_diff": true
+    }
+  ],
+  "behaviour_change": "prepared statement (mysqlnd) mengembalikan angka sebagai int, query teks sebagai string: JSON berubah dari \"id\":\"17\" menjadi \"id\":17. Periksa kode frontend yang membandingkan dengan ===. Diuji pada target php-react-demo: isi data identik, hanya tipe yang berubah.",
+  "manual": [
+    "api/login.php:8 hash sandi md5/sha1 -> password_hash()/password_verify() (argon2id/bcrypt) + migrasi hash saat login berikutnya",
+    "api/login.php:8 SQL dirangkai dari variabel lalu dijalankan di baris lain (SQL injection) -> prepared statement (perlu ditulis manual: query dan eksekusinya terpisah)"
+  ]
+}

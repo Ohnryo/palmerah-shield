@@ -117,6 +117,30 @@ statement untuk SQL yang dirangkai dari variabel. Diuji pada target PHP `benteng
 diterapkan, lolos `php -l`, dan hasil query identik — kecuali tipe JSON angka (`"17"` → `17`), dicatat sebagai perubahan perilaku.
 Query yang dirangkai dan dijalankan di baris berbeda (`login.php`) serta hash MD5 hanya dilaporkan untuk dikerjakan manusia.
 
+## Hasil benchmark (contoh: `examples/out/benchmark_b.json`)
+
+Website B (PostgreSQL 16), container Linux 4 CPU. Data: `seed.scale_rows` dari **dump pengganti sintetis** (dump resmi
+tidak tersedia di mesin uji ini); ulangi dengan `shield benchmark -t b` di mesin demo. 300 kueri per beban; "sesudah" =
+login aplikasi + `SET ROLE sdm` + VIEW, lookup termasuk dekripsi oleh filter proxy.
+
+| | 10 rb sebelum | 10 rb sesudah | 100 rb sebelum | 100 rb sesudah |
+|---|---|---|---|---|
+| Lookup satu anggota p50 / p95 (ms) | 0,11 / 0,20 | 0,23 / 0,61 | 0,09 / 0,20 | 0,32 / 0,54 |
+| Cari NIK p50 / p95 (ms) | 1,28 / 1,42 | 0,11 / 0,18 | 9,68 / 11,41 | 0,13 / 0,22 |
+| Galat kueri | 0 / 600 | 0 / 600 | 0 / 600 | 0 / 600 |
+| Ukuran database (MB) | 21,8 | 54,6 | 125,5 | 469,8 |
+| Dump (MB / detik) | 7,9 / 0,14 | 23,5 / 0,23 | 80,5 / 0,78 | 236,4 / 1,55 |
+| Apply (detik) | – | 9,4 | – | 96,1 (1.040 anggota/detik) |
+| Rollback (detik) | – | 0,3 | – | 2,6 |
+
+* Lookup sekitar 2–3× lebih lambat (tetap < 1 ms p95): biaya dekripsi per baris oleh proxy.
+* Cari NIK lebih cepat **karena indeks** pada `nik_bidx` (skema rentan tidak mengindeks `nik`), bukan karena enkripsi.
+* Biaya terbesar ada di penyimpanan: database ±3,7× dan dump ±3× lebih besar (ciphertext base64 + padding + kolom bidx/mask).
+* RSS puncak proses benchmark 936 MB pada 100 rb: `apply` memuat tabel ke memori; untuk 1 jt baris perlu migrasi bertahap
+  (belum dibuat). CPU server database tidak diukur.
+* Backup PostgreSQL kini memakai format COPY: dengan `pg_dump --inserts` restore 100 rb anggota butuh 294 detik dan
+  rollback 324 detik; dengan COPY rollback 2,6 detik. Pemeriksaan "nilai asli di dump" tetap 0 / 400 dengan format baru.
+
 ## Fixture
 
 | Website | Database | Isi |

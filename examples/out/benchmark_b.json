@@ -1,0 +1,144 @@
+{
+  "target": "b",
+  "database": "web_modern",
+  "generated_at": "2026-10-29T17:31:27+00:00",
+  "queries_per_workload": 300,
+  "role_after": "sdm",
+  "machine": {
+    "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+    "python": "3.13.17",
+    "cpus": 4
+  },
+  "sizes": [
+    {
+      "members": 10000,
+      "load_s": 1.56,
+      "before": {
+        "lookup": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 0.11,
+          "p95_ms": 0.204,
+          "mean_ms": 0.131,
+          "qps": 7590.1
+        },
+        "search": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 1.278,
+          "p95_ms": 1.417,
+          "mean_ms": 1.259,
+          "qps": 793.4
+        },
+        "db_bytes": 21830679,
+        "client_cpu_s": 0.076,
+        "peak_rss_mb": 84.5,
+        "dump_s": 0.14,
+        "dump_bytes": 7935684,
+        "restore_s": 0.29
+      },
+      "after": {
+        "lookup": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 0.229,
+          "p95_ms": 0.607,
+          "mean_ms": 0.287,
+          "qps": 3473.2
+        },
+        "search": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 0.111,
+          "p95_ms": 0.18,
+          "mean_ms": 0.125,
+          "qps": 7965.6
+        },
+        "db_bytes": 54598679,
+        "client_cpu_s": 0.085,
+        "peak_rss_mb": 151.1,
+        "dump_s": 0.23,
+        "dump_bytes": 23482782
+      },
+      "apply": {
+        "seconds": 9.45,
+        "members_per_s": 1057.8,
+        "steps": {
+          "backup": 0.23,
+          "migrate": 4.67,
+          "views_and_roles": 0.1,
+          "verify": 4.44
+        }
+      },
+      "rollback_s": 0.38
+    },
+    {
+      "members": 100000,
+      "load_s": 11.99,
+      "before": {
+        "lookup": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 0.09,
+          "p95_ms": 0.201,
+          "mean_ms": 0.112,
+          "qps": 8929.5
+        },
+        "search": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 9.682,
+          "p95_ms": 11.414,
+          "mean_ms": 8.952,
+          "qps": 111.7
+        },
+        "db_bytes": 125541399,
+        "client_cpu_s": 0.085,
+        "peak_rss_mb": 418.7,
+        "dump_s": 0.78,
+        "dump_bytes": 80469904,
+        "restore_s": 2.05
+      },
+      "after": {
+        "lookup": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 0.317,
+          "p95_ms": 0.537,
+          "mean_ms": 0.339,
+          "qps": 2939.0
+        },
+        "search": {
+          "n": 300,
+          "errors": 0,
+          "p50_ms": 0.13,
+          "p95_ms": 0.223,
+          "mean_ms": 0.146,
+          "qps": 6808.6
+        },
+        "db_bytes": 469802007,
+        "client_cpu_s": 0.09,
+        "peak_rss_mb": 936.0,
+        "dump_s": 1.55,
+        "dump_bytes": 236393191
+      },
+      "apply": {
+        "seconds": 96.13,
+        "members_per_s": 1040.2,
+        "steps": {
+          "backup": 1.4,
+          "migrate": 46.9,
+          "views_and_roles": 0.41,
+          "verify": 47.42
+        }
+      },
+      "rollback_s": 2.57
+    }
+  ],
+  "notes": [
+    "data sintetis hasil seed.scale_rows (identitas unik baru per baris); bukan data nyata",
+    "before = aplikasi rentan sebagai root/postgres pada tabel dasar; after = login aplikasi + SET ROLE sdm + VIEW, lookup termasuk dekripsi oleh filter proxy, search memakai blind index (berindeks)",
+    "CPU/RAM = proses benchmark (klien + kripto proxy); CPU server database tidak diukur",
+    "dump after lebih besar karena ciphertext + kolom bidx/mask; restore after tidak diukur (rollback memulihkan backup)"
+  ]
+}

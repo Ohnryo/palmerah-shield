@@ -3,7 +3,7 @@
 Komponen **Shield** dari proyek Palmerah (Final Hackathon DPR RI 2026, "Database Bocor"): CLI yang mengubah website
 dummy yang rentan menjadi terlindungi — `scan` → `plan` → `apply` (+ `rollback`, `benchmark`).
 
-* Sumber kebenaran: [docs/KONTRAK.md](docs/KONTRAK.md). Integrasi website A/B dengan proxy: [docs/INTEGRASI_WEB.md](docs/INTEGRASI_WEB.md). Asumsi dan hal yang perlu disepakati tim: [docs/ASUMSI.md](docs/ASUMSI.md).
+* Sumber kebenaran: [docs/KONTRAK.md](docs/KONTRAK.md). Integrasi website A/B dengan proxy: [docs/INTEGRASI_WEB.md](docs/INTEGRASI_WEB.md). Naskah demo: [docs/DEMO.md](docs/DEMO.md). Asumsi dan hal yang perlu disepakati tim: [docs/ASUMSI.md](docs/ASUMSI.md).
 * Semua data **sintetis**; semua layanan hanya di `127.0.0.1` (atau jaringan Docker terisolasi). Tidak ada rahasia di repo.
 
 ## Status

@@ -466,4 +466,17 @@ def serve(port: int = 8700) -> None:
     print(f"Palmerah Shield Console: https://localhost:{port}\n"
           f"Token login (berlaku sampai proses ini berhenti): {token}\n"
           f"Browser perlu mempercayai CA uji: {CERTS / 'ca.crt'}", flush=True)
-    uvicorn.Server(config).run()
+    server = uvicorn.Server(config)
+
+    async def main() -> None:
+        asyncio.get_running_loop().set_exception_handler(_quiet_resets)
+        await server.serve()
+    asyncio.run(main())
+
+
+def _quiet_resets(loop, context: dict) -> None:
+    """Windows' proactor loop logs a traceback whenever a browser drops a connection (e.g. it refuses the test CA
+    during the TLS handshake, or a tab closes). That is not an error of ours; anything else is still reported."""
+    if isinstance(context.get("exception"), ConnectionResetError):
+        return
+    loop.default_exception_handler(context)
